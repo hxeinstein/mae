@@ -5,32 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>열에 의한 물질의 변화 시뮬레이션 | 역학과 에너지</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --board:#3f5b37; --cream:#f8f0d8; --paper:#fffaf0;
-  --label:#50692d; --orange:#f5922f; --red:#e03c31; --yellow:#ffe27a;
-  --ink:#2f3a2a; --muted:#6b7a62; --blue:#2f6fb5; --chalk:#f4f1e6;
+  --board:#35415A; --cream:#FFF9F0; --paper:#FFFFFF;
+  --label:#35415A; --orange:#E3614A; --red:#E3614A; --yellow:#FFC94A;
+  --ink:#1D1F26; --muted:#8C8C96; --blue:#3D7FD9; --chalk:#FFF9F0;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{background:var(--cream);color:var(--ink);font-family:"Gowun Dodum","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+body{background:var(--cream);color:var(--ink);font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   display:flex;flex-direction:column;min-height:100vh;font-size:18px}
-h1,.tab,.btn,.big,.val,.seg{font-family:"Jua","Noto Sans KR",sans-serif;font-weight:400}
+h1,.tab,.btn,.big,.val,.seg{font-family:"Do Hyeon","Noto Sans KR",sans-serif;font-weight:400}
 header{display:flex;align-items:center;gap:14px;padding:10px 18px;flex-wrap:wrap}
 header h1{margin:0;font-size:clamp(20px,2.4vw,30px);color:var(--label)}
 header .sub{font-size:14px;color:var(--muted)}
 nav{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
-.tab{border:none;background:#efe3bf;color:var(--label);padding:9px 16px;border-radius:999px;font-size:clamp(15px,1.6vw,19px);cursor:pointer}
+.tab{border:none;background:#F8D3CA;color:var(--label);padding:9px 16px;border-radius:999px;font-size:clamp(15px,1.6vw,19px);cursor:pointer}
 .tab.on{background:var(--orange);color:#fff}
 main{flex:1;padding:0 14px 14px;display:flex}
-.board{flex:1;background:var(--board);border:10px solid #e6d3a6;border-radius:18px;padding:16px 18px;color:var(--chalk);display:none;gap:16px;min-height:0;
+.board{flex:1;background:var(--board);border:10px solid #F8D3CA;border-radius:18px;padding:16px 18px;color:var(--chalk);display:none;gap:16px;min-height:0;
   grid-template-columns:minmax(0,1.45fr) minmax(310px,1fr)}
 .board.on{display:grid}
 .left{display:flex;flex-direction:column;gap:10px;min-height:0}
 .panel{background:var(--paper);color:var(--ink);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:auto}
 .btn{border:none;border-radius:12px;padding:9px 15px;font-size:clamp(15px,1.5vw,18px);cursor:pointer;background:var(--orange);color:#fff}
-.btn.ghost{background:#e9dcb7;color:var(--label)}
+.btn.ghost{background:#F8D3CA;color:var(--label)}
 .btn.sel{outline:3px solid var(--label)}
 .btn:disabled{opacity:.4;cursor:default}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -39,25 +39,25 @@ main{flex:1;padding:0 14px 14px;display:flex}
 canvas{display:block;width:100%;border-radius:14px}
 input[type=range]{width:100%;accent-color:var(--orange)}
 label.sl{display:block;font-size:16px}
-label.sl b{font-family:Jua,sans-serif;font-weight:400;color:var(--label)}
+label.sl b{font-family:"Do Hyeon",sans-serif;font-weight:400;color:var(--label)}
 .val{font-size:22px;color:var(--label)}
 .card{background:#fff;border-radius:12px;padding:10px 12px;line-height:1.6;font-size:17px}
-.card .eq{font-family:Jua,sans-serif;font-size:21px;color:var(--red)}
+.card .eq{font-family:"Do Hyeon",sans-serif;font-size:21px;color:var(--red)}
 .segs{display:flex;gap:6px}
-.seg{flex:1;border:none;border-radius:10px;padding:8px 0;background:#e9dcb7;color:var(--label);font-size:18px;cursor:pointer}
+.seg{flex:1;border:none;border-radius:10px;padding:8px 0;background:#F8D3CA;color:var(--label);font-size:18px;cursor:pointer}
 .seg.on{background:var(--orange);color:#fff}
 .readout{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .readout div{background:#fff;border-radius:10px;padding:6px 8px;text-align:center;font-size:14px;color:var(--muted)}
-.readout b{display:block;font-family:Jua,sans-serif;font-weight:400;font-size:22px;color:var(--ink)}
+.readout b{display:block;font-family:"Do Hyeon",sans-serif;font-weight:400;font-size:22px;color:var(--ink)}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:2px solid #d9c68f;background:#fff;border-radius:999px;padding:5px 12px;font-size:15px;cursor:pointer;user-select:none}
-.chip.on{border-color:var(--orange);background:#fff1e1}
-.ex{background:#fff;border:2px solid #e2d3a6;border-radius:12px;padding:8px 10px;cursor:pointer;font-size:16px}
-.ex.on{border-color:var(--orange);background:#fff6ea}
-.ans{display:none;color:var(--red);font-family:Jua,sans-serif;font-size:18px}
+.chip{border:2px solid #F3C2B6;background:#fff;border-radius:999px;padding:5px 12px;font-size:15px;cursor:pointer;user-select:none}
+.chip.on{border-color:var(--orange);background:#FDEBE6}
+.ex{background:#fff;border:2px solid #F3C2B6;border-radius:12px;padding:8px 10px;cursor:pointer;font-size:16px}
+.ex.on{border-color:var(--orange);background:#FDEBE6}
+.ans{display:none;color:var(--red);font-family:"Do Hyeon",sans-serif;font-size:18px}
 .ans.show{display:block}
 table.mini{border-collapse:collapse;font-size:14px;width:100%}
-table.mini td,table.mini th{border:1px solid #e2d3a6;padding:3px 4px;text-align:center}
+table.mini td,table.mini th{border:1px solid #F3C2B6;padding:3px 4px;text-align:center}
 footer{font-size:12px;color:var(--muted);padding:0 18px 8px}
 @media (max-width:860px){.board{grid-template-columns:1fr}}
 </style>
@@ -116,8 +116,8 @@ footer{font-size:12px;color:var(--muted);padding:0 18px 8px}
       <button class="btn ghost mode2" data-m="gay">부피 일정 (P–T)</button>
       <button class="btn ghost mode2" data-m="charles">압력 일정 (V–T)</button>
     </div>
-    <canvas id="box" width="900" height="300" style="background:#f2efe4"></canvas>
-    <canvas id="g2" width="900" height="300" style="background:#fffdf6"></canvas>
+    <canvas id="box" width="900" height="300" style="background:#FFF9F0"></canvas>
+    <canvas id="g2" width="900" height="300" style="background:#FFFFFF"></canvas>
   </div>
   <div class="panel">
     <p class="val" id="m2title">온도가 일정할 때 압력과 부피</p>
@@ -126,7 +126,7 @@ footer{font-size:12px;color:var(--muted);padding:0 18px 8px}
       <div>부피<b id="r2V">-</b></div>
       <div>온도<b id="r2T">-</b></div>
     </div>
-    <div class="note" style="font-size:15px;color:var(--ink)">벽 100 px당 1초 동안 부딪힌 횟수: <b id="r2H" style="font-family:Jua;font-weight:400;font-size:19px">-</b> 회</div>
+    <div class="note" style="font-size:15px;color:var(--ink)">벽 100 px당 1초 동안 부딪힌 횟수: <b id="r2H" style="font-family:'Do Hyeon';font-weight:400;font-size:19px">-</b> 회</div>
     <label class="sl" id="slV"><b>부피</b> <span id="vV">50 mL</span><input type="range" id="inV" min="20" max="60" step="1" value="50"></label>
     <label class="sl" id="slT"><b>온도</b> <span id="vT">293 K</span><input type="range" id="inT" min="200" max="400" step="1" value="293"></label>
     <div class="row">
@@ -145,11 +145,11 @@ footer{font-size:12px;color:var(--muted);padding:0 18px 8px}
 <!-- ================= TAB 3 : PV=nRT ================= -->
 <section class="board" id="t3">
   <div class="left">
-    <canvas id="cyl" width="900" height="430" style="background:#f2efe4"></canvas>
+    <canvas id="cyl" width="900" height="430" style="background:#FFF9F0"></canvas>
     <div class="card" style="text-align:center"><span class="eq" id="eq3"></span></div>
   </div>
   <div class="panel">
-    <div class="row"><b style="font-family:Jua;font-weight:400;color:var(--label)">계산할 값:</b>
+    <div class="row"><b style="font-family:'Do Hyeon';font-weight:400;color:var(--label)">계산할 값:</b>
       <label><input type="radio" name="calc3" value="P" checked> P</label>
       <label><input type="radio" name="calc3" value="V"> V</label>
       <label><input type="radio" name="calc3" value="T"> T</label>
@@ -160,7 +160,7 @@ footer{font-size:12px;color:var(--muted);padding:0 18px 8px}
     <label class="sl"><b>온도 T</b> <span id="v3T"></span><input type="range" id="i3T" min="150" max="600" step="1"></label>
     <label class="sl"><b>몰수 n</b> <span id="v3n"></span><input type="range" id="i3n" min="0.1" max="3" step="0.05"></label>
     <div class="note">R = 8.31 J/(mol·K) · kPa × L = J 이라서 P(kPa) × V(L) = n × 8.31 × T(K)</div>
-    <b style="font-family:Jua;font-weight:400;color:var(--label);font-size:19px">생활 속 예 — 먼저 예측하고 ▶ 실행!</b>
+    <b style="font-family:'Do Hyeon';font-weight:400;color:var(--label);font-size:19px">생활 속 예 — 먼저 예측하고 ▶ 실행!</b>
     <div id="exList" style="display:flex;flex-direction:column;gap:6px"></div>
   </div>
 </section>
@@ -169,11 +169,11 @@ footer{font-size:12px;color:var(--muted);padding:0 18px 8px}
 <section class="board" id="t4">
   <div class="left">
     <p class="big">같은 질량(100 g)에 같은 세기(50 W)로 열을 가하면?</p>
-    <canvas id="c4" width="900" height="330" style="background:#fffdf6"></canvas>
+    <canvas id="c4" width="900" height="330" style="background:#FFFFFF"></canvas>
     <canvas id="sea" width="900" height="170" style="background:#cfe8f7"></canvas>
   </div>
   <div class="panel">
-    <b style="font-family:Jua;font-weight:400;color:var(--label);font-size:19px">비교할 물질 고르기</b>
+    <b style="font-family:'Do Hyeon';font-weight:400;color:var(--label);font-size:19px">비교할 물질 고르기</b>
     <div class="chips" id="chips4"></div>
     <div class="row">
       <button class="btn" id="play4">▶ 가열</button>
@@ -181,8 +181,8 @@ footer{font-size:12px;color:var(--muted);padding:0 18px 8px}
       <span class="val" id="time4">0 초</span>
     </div>
     <table class="mini" id="tbl4"></table>
-    <div class="card">같은 열을 받아도 <b style="color:var(--red)">비열이 큰 물질</b>은 온도가 <b style="color:var(--red)">천천히</b> 올라가요. <br><span style="font-family:Jua">Q = c m ΔT</span> → ΔT = Q ÷ (c m)</div>
-    <div class="row"><b style="font-family:Jua;font-weight:400;color:var(--label)">바닷가의 바람</b>
+    <div class="card">같은 열을 받아도 <b style="color:var(--red)">비열이 큰 물질</b>은 온도가 <b style="color:var(--red)">천천히</b> 올라가요. <br><span style="font-family:'Do Hyeon'">Q = c m ΔT</span> → ΔT = Q ÷ (c m)</div>
+    <div class="row"><b style="font-family:'Do Hyeon';font-weight:400;color:var(--label)">바닷가의 바람</b>
       <button class="btn ghost" id="day4">☀ 낮</button><button class="btn ghost" id="night4">☾ 밤</button></div>
     <div class="card" id="seaTxt" style="font-size:16px"></div>
     <div class="note">비열 값은 교과서 60쪽 표(은 230, 구리 390, 철 450, 유리 840, 알루미늄 900, 물 4186 J/(kg·K)). 열 손실은 없다고 가정한 계산이에요.</div>
@@ -220,23 +220,23 @@ function xOf(Q,W){ const real=document.querySelector('input[name=scale1]:checked
   for(let i=0;i<5;i++){const s=SEG[i]; if(Q<=s.q1){return (x+(Q-s.q0)/s.Q*SHAPEW[i])/tot*W} x+=SHAPEW[i]} return W; }
 function draw1(){
   const cv=$('c1'),c=cv.getContext('2d'),w=cv.width,h=cv.height,L=70,R=24,T=20,B=50,W=w-L-R,H=h-T-B;
-  c.clearRect(0,0,w,h); c.fillStyle='#fffdf6'; c.fillRect(0,0,w,h);
+  c.clearRect(0,0,w,h); c.fillStyle='#FFFFFF'; c.fillRect(0,0,w,h);
   const Y=t=>T+H-(t+20)/(140)*H, X=q=>L+xOf(q,W);
   // segment shading
-  SEG.forEach((s,i)=>{c.fillStyle=i===segSel?'rgba(245,146,47,.18)':(i%2?'rgba(80,105,45,.05)':'rgba(80,105,45,.0)');c.fillRect(X(s.q0),T,X(s.q1)-X(s.q0),H);
-    c.fillStyle=i===segSel?'#e0782f':'#9aa58a';c.font='22px Jua';c.textAlign='center';c.fillText(s.k,(X(s.q0)+X(s.q1))/2,T+24)});
+  SEG.forEach((s,i)=>{c.fillStyle=i===segSel?'rgba(227,97,74,.18)':(i%2?'rgba(53,65,90,.05)':'rgba(53,65,90,.0)');c.fillRect(X(s.q0),T,X(s.q1)-X(s.q0),H);
+    c.fillStyle=i===segSel?'#E3614A':'#B9B9C2';c.font='22px "Do Hyeon"';c.textAlign='center';c.fillText(s.k,(X(s.q0)+X(s.q1))/2,T+24)});
   // axes
-  c.strokeStyle='#cdbf96';c.lineWidth=1;c.fillStyle='#6b7a62';c.font='15px Gowun Dodum';c.textAlign='right';
+  c.strokeStyle='#EEE4DA';c.lineWidth=1;c.fillStyle='#8C8C96';c.font='15px Noto Sans KR';c.textAlign='right';
   for(let t=-20;t<=120;t+=20){c.beginPath();c.moveTo(L,Y(t));c.lineTo(L+W,Y(t));c.stroke();c.fillText(t,L-8,Y(t)+5)}
-  c.save();c.translate(18,T+H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.font='16px Jua';c.fillText('온도(℃)',0,0);c.restore();
-  c.textAlign='center';c.font='16px Jua';c.fillText(document.querySelector('input[name=scale1]:checked').value==='real'?'가한 열량 (J) → 일정하게 가열하면 가열 시간':'가한 열량(가열 시간) → 구간 너비는 실제 비율과 달라요',L+W/2,h-12);
-  if(document.querySelector('input[name=scale1]:checked').value==='real'){c.font='13px Gowun Dodum';for(let q=0;q<=3000;q+=500)c.fillText(q,L+q/QTOT*W,T+H+18)}
+  c.save();c.translate(18,T+H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.font='16px "Do Hyeon"';c.fillText('온도(℃)',0,0);c.restore();
+  c.textAlign='center';c.font='16px "Do Hyeon"';c.fillText(document.querySelector('input[name=scale1]:checked').value==='real'?'가한 열량 (J) → 일정하게 가열하면 가열 시간':'가한 열량(가열 시간) → 구간 너비는 실제 비율과 달라요',L+W/2,h-12);
+  if(document.querySelector('input[name=scale1]:checked').value==='real'){c.font='13px Noto Sans KR';for(let q=0;q<=3000;q+=500)c.fillText(q,L+q/QTOT*W,T+H+18)}
   // full ghost curve + drawn part
   const pts=[]; for(let i=0;i<=600;i++){const q=QTOT*i/600;pts.push([X(q),Y(state1(q).T),q])}
   c.strokeStyle='#e4dcc4';c.lineWidth=3;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();
-  c.strokeStyle='#e03c31';c.lineWidth=5;c.beginPath();let first=true;pts.forEach(p=>{if(p[2]<=Q1){first?c.moveTo(p[0],p[1]):c.lineTo(p[0],p[1]);first=false}});
+  c.strokeStyle='#E3614A';c.lineWidth=5;c.beginPath();let first=true;pts.forEach(p=>{if(p[2]<=Q1){first?c.moveTo(p[0],p[1]):c.lineTo(p[0],p[1]);first=false}});
   const st=state1(Q1);c.lineTo(X(Q1),Y(st.T));c.stroke();
-  c.fillStyle='#e03c31';c.beginPath();c.arc(X(Q1),Y(st.T),8,0,7);c.fill();
+  c.fillStyle='#E3614A';c.beginPath();c.arc(X(Q1),Y(st.T),8,0,7);c.fill();
 }
 // beaker particles
 const NB=42, bp=[]; for(let i=0;i<NB;i++){const gx=i%7,gy=Math.floor(i/7);bp.push({hx:140+gx*24,hy:225-gy*24,x:140+gx*24,y:225-gy*24,vx:0,vy:0,phase:Math.random()*6.3,gas:false,free:false})}
@@ -247,7 +247,7 @@ function drawBeaker(dt){
   // container
   c.strokeStyle='#7c8a96';c.lineWidth=4;c.beginPath();c.moveTo(90,10);c.lineTo(90,240);c.lineTo(330,240);c.lineTo(330,10);c.stroke();
   // flame
-  if(run1){c.fillStyle='rgba(245,146,47,.85)';for(let k=0;k<5;k++){c.beginPath();const fx=130+k*42;c.moveTo(fx-10,h);c.quadraticCurveTo(fx,h-18-Math.random()*8,fx+10,h);c.fill()}}
+  if(run1){c.fillStyle='rgba(227,97,74,.85)';for(let k=0;k<5;k++){c.beginPath();const fx=130+k*42;c.moveTo(fx-10,h);c.quadraticCurveTo(fx,h-18-Math.random()*8,fx+10,h);c.fill()}}
   const nFree=Math.round(melt*NB), nGas=Math.round(boil*NB);
   bp.forEach((p,i)=>{
     p.free = i>=NB-nFree || melt>=1; p.gas = i<nGas;
@@ -262,22 +262,22 @@ function drawBeaker(dt){
       if(p.x<lim.x0){p.x=lim.x0;p.vx=Math.abs(p.vx)} if(p.x>lim.x1){p.x=lim.x1;p.vx=-Math.abs(p.vx)}
       if(p.y<lim.y0){p.y=lim.y0;p.vy=Math.abs(p.vy)} if(p.y>lim.y1){p.y=lim.y1;p.vy=-Math.abs(p.vy)}
     }
-    c.fillStyle=p.gas?'#e0782f':(p.free?'#2f6fb5':'#7fb4e6'); c.beginPath();c.arc(p.x,p.y,9,0,7);c.fill();
+    c.fillStyle=p.gas?'#E3614A':(p.free?'#3D7FD9':'#7fb4e6'); c.beginPath();c.arc(p.x,p.y,9,0,7);c.fill();
     c.strokeStyle='rgba(0,0,0,.15)';c.lineWidth=1;c.stroke();
   });
   // bonds for solid
   c.strokeStyle='rgba(47,111,181,.25)';c.lineWidth=2;bp.forEach((p,i)=>{if(p.free)return;const r=bp[i+1];if(r&&!r.free&&i%7!==6){c.beginPath();c.moveTo(p.x,p.y);c.lineTo(r.x,r.y);c.stroke()}const u=bp[i+7];if(u&&!u.free){c.beginPath();c.moveTo(p.x,p.y);c.lineTo(u.x,u.y);c.stroke()}});
   c.setTransform(1,0,0,1,0,0);
-  c.fillStyle='#2f3a2a';c.font='16px Jua';c.textAlign='left';
-  c.fillText('● 얼음(고체)',290,40);c.fillStyle='#2f6fb5';c.fillText('● 물(액체)',290,66);c.fillStyle='#e0782f';c.fillText('● 수증기(기체)',290,92);
+  c.fillStyle='#1D1F26';c.font='16px "Do Hyeon"';c.textAlign='left';
+  c.fillText('● 얼음(고체)',290,40);c.fillStyle='#3D7FD9';c.fillText('● 물(액체)',290,66);c.fillStyle='#E3614A';c.fillText('● 수증기(기체)',290,92);
   // thermometer
   c.fillStyle='#fff';c.fillRect(300,110,22,120);c.strokeStyle='#999';c.strokeRect(300,110,22,120);
-  const tt=Math.max(0,Math.min(1,(st.T+20)/140));c.fillStyle='#e03c31';c.fillRect(304,226-112*tt,14,112*tt+2);
-  c.fillStyle='#2f3a2a';c.font='15px Jua';c.fillText(fmt(st.T)+' ℃',330,226-112*tt+5);
+  const tt=Math.max(0,Math.min(1,(st.T+20)/140));c.fillStyle='#E3614A';c.fillRect(304,226-112*tt,14,112*tt+2);
+  c.fillStyle='#1D1F26';c.font='15px "Do Hyeon"';c.fillText(fmt(st.T)+' ℃',330,226-112*tt+5);
 }
 function upd1(){const st=state1(Q1);$('r1T').textContent=fmt(st.T)+' ℃';$('r1Q').textContent=fmt(Q1,Q1<100?1:0)+' J';$('r1S').textContent=SEG[st.i].st+(Q1>=QTOT?'':'');
   document.querySelectorAll('.seg').forEach((b,i)=>b.classList.toggle('on',i===segSel));}
-function showSeg(i){segSel=i;const s=SEG[i];$('segCard').innerHTML=`<b style="font-family:Jua;font-weight:400;font-size:20px;color:var(--label)">구간 ${s.k} · ${s.st}</b><br>${s.why}<br><span class="eq">${s.eq}</span>`+(i===4?`<br><span style="font-size:15px">A~E 전체: 10.5 + 333 + 418.6 + 2260 + 40.2 = <b>3062.3 J</b></span>`:'');upd1();draw1()}
+function showSeg(i){segSel=i;const s=SEG[i];$('segCard').innerHTML=`<b style="font-family:'Do Hyeon';font-weight:400;font-size:20px;color:var(--label)">구간 ${s.k} · ${s.st}</b><br>${s.why}<br><span class="eq">${s.eq}</span>`+(i===4?`<br><span style="font-size:15px">A~E 전체: 10.5 + 333 + 418.6 + 2260 + 40.2 = <b>3062.3 J</b></span>`:'');upd1();draw1()}
 document.querySelectorAll('.seg').forEach(b=>b.onclick=()=>showSeg(+b.dataset.s));
 document.querySelectorAll('input[name=scale1]').forEach(r=>r.onchange=draw1);
 const POW=[0,40,110,320], PWN=['','약하게','보통','세게'];
@@ -323,9 +323,9 @@ function draw2(){
   const vref=vth(293);
   parts.forEach(p=>{const s=Math.hypot(p.vx,p.vy)/vref; const r=Math.min(255,Math.round(60+150*s)), b=Math.max(0,Math.round(240-150*s));
     bx.fillStyle=`rgb(${r},90,${b})`;bx.beginPath();bx.arc(p.x,p.y,PR,0,7);bx.fill()});
-  bx.fillStyle='#2f3a2a';bx.font='17px Jua';bx.textAlign='left';
+  bx.fillStyle='#1D1F26';bx.font='17px "Do Hyeon"';bx.textAlign='left';
   bx.fillText(mode2==='boyle'?'온도 일정 – 피스톤을 움직여 부피를 바꿔요':mode2==='gay'?'부피 일정 – 피스톤 고정, 가열/냉각':'압력 일정 – 피스톤이 자유롭게 움직여요',X0b,20);
-  bx.font='14px Gowun Dodum';bx.fillStyle='#6b7a62';bx.fillText('입자 색: 파랑(느림) → 빨강(빠름)',X0b,h-4);
+  bx.font='14px Noto Sans KR';bx.fillStyle='#8C8C96';bx.fillText('입자 색: 파랑(느림) → 빨강(빠름)',X0b,h-4);
 }
 const BOOK={boyle:[[50,100.9],[45,110.7],[40,122.9],[35,138.0],[30,157.1]], gay:[[278.2,101.1],[286.7,104.0],[316.5,115.3]]};
 function draw2g(){
@@ -336,10 +336,10 @@ function draw2g(){
   else if(mode2==='gay'){xmin=0;xmax=420;xl='절대 온도 T (K)';ymin=0;ymax=150;yl='압력 P (kPa)';xf=r=>r.T;yf=r=>r.P}
   else {xmin=0;xmax=420;xl='절대 온도 T (K)';ymin=0;ymax=75;yl='부피 V (mL)';xf=r=>r.T;yf=r=>r.V}
   const X=v=>L+(v-xmin)/(xmax-xmin)*W, Y=v=>T+H-(v-ymin)/(ymax-ymin)*H;
-  c.strokeStyle='#e5d6a8';c.fillStyle='#6b7a62';c.font='14px Gowun Dodum';c.lineWidth=1;
+  c.strokeStyle='#EEE4DA';c.fillStyle='#8C8C96';c.font='14px Noto Sans KR';c.lineWidth=1;
   for(let i=0;i<=5;i++){const v=ymin+(ymax-ymin)*i/5;c.beginPath();c.moveTo(L,Y(v));c.lineTo(L+W,Y(v));c.stroke();c.textAlign='right';c.fillText(Math.round(v),L-6,Y(v)+5)}
   for(let i=0;i<=6;i++){const v=xmin+(xmax-xmin)*i/6;c.textAlign='center';c.fillText(inv?v.toFixed(3):Math.round(v),X(v),T+H+18)}
-  c.font='16px Jua';c.fillStyle='#50692d';c.textAlign='center';c.fillText(xl,L+W/2,h-6);
+  c.font='16px "Do Hyeon"';c.fillStyle='#35415A';c.textAlign='center';c.fillText(xl,L+W/2,h-6);
   c.save();c.translate(16,T+H/2);c.rotate(-Math.PI/2);c.fillText(yl,0,0);c.restore();
   // theory curve
   c.strokeStyle='rgba(47,111,181,.35)';c.lineWidth=2;c.setLineDash([6,5]);c.beginPath();
@@ -350,13 +350,13 @@ function draw2g(){
     if(yv>ymax)continue; i?c.lineTo(X(xv),Y(yv)):c.moveTo(X(xv),Y(yv))}
   c.stroke();c.setLineDash([]);
   // book data
-  if($('book2').checked&&BOOK[mode2]){c.fillStyle='#e0782f';BOOK[mode2].forEach(d=>{const xv=mode2==='boyle'&&inv?1/d[0]:d[0];c.beginPath();c.rect(X(xv)-6,Y(d[1])-6,12,12);c.fill()});
-    c.font='14px Gowun Dodum';c.textAlign='left';c.fillText('■ 교과서 실험값',L+10,T+16)}
+  if($('book2').checked&&BOOK[mode2]){c.fillStyle='#E3614A';BOOK[mode2].forEach(d=>{const xv=mode2==='boyle'&&inv?1/d[0]:d[0];c.beginPath();c.rect(X(xv)-6,Y(d[1])-6,12,12);c.fill()});
+    c.font='14px Noto Sans KR';c.textAlign='left';c.fillText('■ 교과서 실험값',L+10,T+16)}
   // recorded
-  c.fillStyle='#e03c31';rec.filter(r=>r.m===mode2).forEach(r=>{c.beginPath();c.arc(X(xf(r)),Y(yf(r)),7,0,7);c.fill()});
+  c.fillStyle='#E3614A';rec.filter(r=>r.m===mode2).forEach(r=>{c.beginPath();c.arc(X(xf(r)),Y(yf(r)),7,0,7);c.fill()});
   // current marker
-  const cur={V:V2,P:Pema,T:T2}; c.strokeStyle='#e03c31';c.lineWidth=2;c.beginPath();c.arc(X(xf(cur)),Y(Math.min(ymax,yf(cur))),10,0,7);c.stroke();
-  c.font='14px Gowun Dodum';c.fillStyle='#2f6fb5';c.textAlign='right';c.fillText('점선: 이론값  ● 내가 기록한 값',L+W-4,T+16);
+  const cur={V:V2,P:Pema,T:T2}; c.strokeStyle='#E3614A';c.lineWidth=2;c.beginPath();c.arc(X(xf(cur)),Y(Math.min(ymax,yf(cur))),10,0,7);c.stroke();
+  c.font='14px Noto Sans KR';c.fillStyle='#3D7FD9';c.textAlign='right';c.fillText('점선: 이론값  ● 내가 기록한 값',L+W-4,T+16);
 }
 function setMode2(m){mode2=m;document.querySelectorAll('.mode2').forEach(b=>b.classList.toggle('sel',b.dataset.m===m));
   const titles={boyle:'온도가 일정할 때 압력과 부피',gay:'부피가 일정할 때 압력과 온도',charles:'압력이 일정할 때 부피와 온도'};
@@ -398,7 +398,7 @@ function draw3(dt){
   cc.fillStyle='#9aa7b0';cc.fillRect(cx+3,py-16,cw-6,16);
   // 추(바깥에서 누르는 압력 표시)
   const nw=Math.max(1,Math.min(8,Math.round(s3.P/50))); for(let i=0;i<nw;i++){cc.fillStyle='#6d5a43';cc.fillRect(cx+cw/2-50,py-30-i*14,100,12)}
-  cc.fillStyle='#6b7a62';cc.font='14px Gowun Dodum';cc.textAlign='center';cc.fillText('추가 많을수록 바깥 압력이 큼',cx+cw/2,py-40-nw*14);
+  cc.fillStyle='#8C8C96';cc.font='14px Noto Sans KR';cc.textAlign='center';cc.fillText('추가 많을수록 바깥 압력이 큼',cx+cw/2,py-40-nw*14);
   // particles
   const nShow=Math.max(4,Math.round(Math.min(3,Math.max(0.1,s3.n))*30)), spd=Math.sqrt(Math.max(50,s3.T)/300)*0.35;
   for(let i=0;i<nShow;i++){const p=p3[i];p.x+=Math.cos(p.a)*spd*dt;p.y+=Math.sin(p.a)*spd*dt*1.4;
@@ -408,14 +408,14 @@ function draw3(dt){
   // gauge
   const gx=700,gy=150,gr=90; cc.fillStyle='#fff';cc.beginPath();cc.arc(gx,gy,gr,0,7);cc.fill();cc.strokeStyle='#5d6b74';cc.lineWidth=4;cc.stroke();
   cc.lineWidth=2;for(let i=0;i<=8;i++){const a=Math.PI*0.75+i/8*Math.PI*1.5;cc.beginPath();cc.moveTo(gx+Math.cos(a)*(gr-12),gy+Math.sin(a)*(gr-12));cc.lineTo(gx+Math.cos(a)*gr,gy+Math.sin(a)*gr);cc.stroke();
-    cc.fillStyle='#6b7a62';cc.font='13px Gowun Dodum';cc.textAlign='center';cc.fillText(i*50,gx+Math.cos(a)*(gr-26),gy+Math.sin(a)*(gr-26)+4)}
-  const ga=Math.PI*0.75+Math.min(1,s3.P/400)*Math.PI*1.5; cc.strokeStyle='#e03c31';cc.lineWidth=4;cc.beginPath();cc.moveTo(gx,gy);cc.lineTo(gx+Math.cos(ga)*(gr-18),gy+Math.sin(ga)*(gr-18));cc.stroke();
-  cc.fillStyle='#2f3a2a';cc.font='18px Jua';cc.fillText('압력 '+fmt(s3.P,1)+' kPa',gx,gy+gr+28);
+    cc.fillStyle='#8C8C96';cc.font='13px Noto Sans KR';cc.textAlign='center';cc.fillText(i*50,gx+Math.cos(a)*(gr-26),gy+Math.sin(a)*(gr-26)+4)}
+  const ga=Math.PI*0.75+Math.min(1,s3.P/400)*Math.PI*1.5; cc.strokeStyle='#E3614A';cc.lineWidth=4;cc.beginPath();cc.moveTo(gx,gy);cc.lineTo(gx+Math.cos(ga)*(gr-18),gy+Math.sin(ga)*(gr-18));cc.stroke();
+  cc.fillStyle='#1D1F26';cc.font='18px "Do Hyeon"';cc.fillText('압력 '+fmt(s3.P,1)+' kPa',gx,gy+gr+28);
   // thermometer
   const tx=650,ty=300; cc.fillStyle='#fff';cc.fillRect(tx,ty,200,22);cc.strokeStyle='#999';cc.lineWidth=1;cc.strokeRect(tx,ty,200,22);
-  cc.fillStyle='#e03c31';cc.fillRect(tx+2,ty+3,196*Math.min(1,Math.max(0,(s3.T-150)/450)),16);
-  cc.fillStyle='#2f3a2a';cc.textAlign='center';cc.fillText('온도 '+Math.round(s3.T)+' K',tx+100,ty+48);
-  cc.textAlign='left';cc.font='18px Jua';cc.fillText('부피 '+fmt(s3.V,1)+' L',cx+cw+12,py+6);cc.fillText('입자 수 ∝ n = '+fmt(s3.n,2)+' mol',cx,bottom+24>h?h-4:bottom+24);
+  cc.fillStyle='#E3614A';cc.fillRect(tx+2,ty+3,196*Math.min(1,Math.max(0,(s3.T-150)/450)),16);
+  cc.fillStyle='#1D1F26';cc.textAlign='center';cc.fillText('온도 '+Math.round(s3.T)+' K',tx+100,ty+48);
+  cc.textAlign='left';cc.font='18px "Do Hyeon"';cc.fillText('부피 '+fmt(s3.V,1)+' L',cx+cw+12,py+6);cc.fillText('입자 수 ∝ n = '+fmt(s3.n,2)+' mol',cx,bottom+24>h?h-4:bottom+24);
 }
 const EX3=[
   {t:'들숨: 가로막이 내려가 폐의 부피가 늘어나면?',fix:'T, n 일정',from:{P:101.3,V:5,T:310,n:0.196},to:{V:5.5},calc:'P',q:'폐 안의 압력은?',a:'압력이 낮아져(약 92 kPa) 바깥 공기가 폐로 들어온다. (교과서 67쪽 호흡의 원리)'},
@@ -433,7 +433,7 @@ function runEx(i,d){const e=EX3[i];document.querySelectorAll('.ex').forEach(x=>x
 solve3();sync3();
 
 /* ======================= TAB 4 ======================= */
-const MAT=[{n:'은',c:230,col:'#9aa0a6'},{n:'구리',c:390,col:'#c46a2f'},{n:'철',c:450,col:'#5d6b74'},{n:'유리',c:840,col:'#5fb3b3'},{n:'알루미늄',c:900,col:'#8e7cc3'},{n:'물',c:4186,col:'#2f6fb5'}];
+const MAT=[{n:'은',c:230,col:'#9aa0a6'},{n:'구리',c:390,col:'#c46a2f'},{n:'철',c:450,col:'#5d6b74'},{n:'유리',c:840,col:'#5fb3b3'},{n:'알루미늄',c:900,col:'#8e7cc3'},{n:'물',c:4186,col:'#3D7FD9'}];
 let sel4=new Set(['구리','알루미늄','물']), t4=0, run4=false; const P4=50, m4=0.1, T04=20, TMAX4=120;
 MAT.forEach(mm=>{const c=document.createElement('span');c.className='chip'+(sel4.has(mm.n)?' on':'');c.textContent=`${mm.n} (${mm.c})`;
   c.onclick=()=>{if(sel4.has(mm.n)){if(sel4.size>1)sel4.delete(mm.n)}else sel4.add(mm.n);c.classList.toggle('on',sel4.has(mm.n));draw4()};$('chips4').appendChild(c)});
@@ -441,10 +441,10 @@ function T4(mm,t){return T04+P4*t/(mm.c*m4)}
 function draw4(){
   const cv=$('c4'),c=cv.getContext('2d'),w=cv.width,h=cv.height,L=60,R=170,T=16,B=40,W=w-L-R,H=h-T-B; c.clearRect(0,0,w,h);
   const ymax=300, X=t=>L+t/TMAX4*W, Y=v=>T+H-(v/ymax)*H;
-  c.strokeStyle='#e5d6a8';c.fillStyle='#6b7a62';c.font='14px Gowun Dodum';
+  c.strokeStyle='#EEE4DA';c.fillStyle='#8C8C96';c.font='14px Noto Sans KR';
   for(let v=0;v<=ymax;v+=50){c.beginPath();c.moveTo(L,Y(v));c.lineTo(L+W,Y(v));c.stroke();c.textAlign='right';c.fillText(v,L-6,Y(v)+5)}
   for(let t=0;t<=TMAX4;t+=20){c.textAlign='center';c.fillText(t,X(t),T+H+18)}
-  c.font='16px Jua';c.fillStyle='#50692d';c.fillText('가열 시간 (초)',L+W/2,h-4);c.save();c.translate(16,T+H/2);c.rotate(-Math.PI/2);c.fillText('온도 (℃)',0,0);c.restore();
+  c.font='16px "Do Hyeon"';c.fillStyle='#35415A';c.fillText('가열 시간 (초)',L+W/2,h-4);c.save();c.translate(16,T+H/2);c.rotate(-Math.PI/2);c.fillText('온도 (℃)',0,0);c.restore();
   const rows=[];
   MAT.filter(mm=>sel4.has(mm.n)).forEach((mm,i)=>{
     c.strokeStyle=mm.col;c.lineWidth=4;c.beginPath();
@@ -453,7 +453,7 @@ function draw4(){
     // thermometer bars on right
     const bx0=L+W+20+i*26; c.fillStyle='#fff';c.fillRect(bx0,T,18,H);c.strokeStyle='#bbb';c.lineWidth=1;c.strokeRect(bx0,T,18,H);
     c.fillStyle=mm.col;const hh=Math.min(1,v/ymax)*H;c.fillRect(bx0+3,T+H-hh,12,hh);
-    c.save();c.translate(bx0+13,T+H+4);c.rotate(-Math.PI/2.4);c.fillStyle='#2f3a2a';c.font='12px Gowun Dodum';c.textAlign='right';c.fillText(mm.n,0,0);c.restore();
+    c.save();c.translate(bx0+13,T+H+4);c.rotate(-Math.PI/2.4);c.fillStyle='#1D1F26';c.font='12px Noto Sans KR';c.textAlign='right';c.fillText(mm.n,0,0);c.restore();
     rows.push(`<tr><td style="color:${mm.col};font-weight:700">${mm.n}</td><td>${mm.c}</td><td>${fmt(v,1)} ℃</td><td>${fmt(v-T04,1)} ℃</td></tr>`)});
   $('tbl4').innerHTML='<tr><th>물질</th><th>비열</th><th>현재 온도</th><th>올라간 온도</th></tr>'+rows.join('');
   $('time4').textContent=fmt(t4,0)+' 초 · 가한 열 '+Math.round(P4*t4)+' J';
@@ -467,13 +467,13 @@ function drawSea(){
   c.fillStyle=day?'#ffd34d':'#f4f1e6';c.beginPath();c.arc(day?120:780,40,22,0,7);c.fill();
   c.fillStyle='#3b8bd0';c.fillRect(0,120,w/2,h-120);c.fillStyle='#b98c55';c.fillRect(w/2,112,w/2,h-112);
   const seaT=day?18:16, landT=day?28:10;
-  c.fillStyle=day?'#2f3a2a':'#f4f1e6';c.font='17px Jua';c.textAlign='center';
+  c.fillStyle=day?'#1D1F26':'#f4f1e6';c.font='17px "Do Hyeon"';c.textAlign='center';
   c.fillText(`바다 ${seaT}℃ (비열 큼 → 천천히 변함)`,w/4,108);c.fillText(`육지 ${landT}℃ (비열 작음 → 빨리 변함)`,w*3/4,100);
   // wind arrow from cooler (higher pressure) to warmer near ground
   const from = day? w*0.32 : w*0.68, to = day? w*0.68 : w*0.32; const y=70;
-  c.strokeStyle='#e03c31';c.fillStyle='#e03c31';c.lineWidth=6;c.beginPath();c.moveTo(from,y);c.lineTo(to,y);c.stroke();
+  c.strokeStyle='#E3614A';c.fillStyle='#E3614A';c.lineWidth=6;c.beginPath();c.moveTo(from,y);c.lineTo(to,y);c.stroke();
   const dir=Math.sign(to-from);c.beginPath();c.moveTo(to,y);c.lineTo(to-dir*18,y-12);c.lineTo(to-dir*18,y+12);c.fill();
-  c.font='18px Jua';c.fillText(day?'해풍 (바다 → 육지)':'육풍 (육지 → 바다)',w/2,y-16);
+  c.font='18px "Do Hyeon"';c.fillText(day?'해풍 (바다 → 육지)':'육풍 (육지 → 바다)',w/2,y-16);
   $('seaTxt').innerHTML= day? '낮: 햇빛을 받으면 비열이 작은 <b>육지가 빨리 데워져</b> 육지 위 공기가 올라가고, 바다 쪽 공기가 육지로 불어와요(해풍).'
     : '밤: 비열이 작은 <b>육지가 빨리 식어</b> 바다가 더 따뜻해요. 바람이 육지에서 바다로 불어요(육풍).';
   $('day4').classList.toggle('sel',day);$('night4').classList.toggle('sel',!day);
