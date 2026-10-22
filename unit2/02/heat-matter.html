@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>열에 의한 물질의 변화 시뮬레이션 | 역학과 에너지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --board:#35415A; --cream:#FFF9F0; --paper:#FFFFFF;
+  --label:#35415A; --orange:#E3614A; --red:#E3614A; --yellow:#FFC94A;
+  --ink:#1D1F26; --muted:#8C8C96; --blue:#3D7FD9; --chalk:#FFF9F0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--cream);color:var(--ink);font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  display:flex;flex-direction:column;min-height:100vh;font-size:18px}
+h1,.tab,.btn,.big,.val,.seg{font-family:"Do Hyeon","Noto Sans KR",sans-serif;font-weight:400}
+header{display:flex;align-items:center;gap:14px;padding:10px 18px;flex-wrap:wrap}
+header h1{margin:0;font-size:clamp(20px,2.4vw,30px);color:var(--label)}
+header .sub{font-size:14px;color:var(--muted)}
+nav{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.tab{border:none;background:#F8D3CA;color:var(--label);padding:9px 16px;border-radius:999px;font-size:clamp(15px,1.6vw,19px);cursor:pointer}
+.tab.on{background:var(--orange);color:#fff}
+main{flex:1;padding:0 14px 14px;display:flex}
+.board{flex:1;background:var(--board);border:10px solid #F8D3CA;border-radius:18px;padding:16px 18px;color:var(--chalk);display:none;gap:16px;min-height:0;
+  grid-template-columns:minmax(0,1.45fr) minmax(310px,1fr)}
+.board.on{display:grid}
+.left{display:flex;flex-direction:column;gap:10px;min-height:0}
+.panel{background:var(--paper);color:var(--ink);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:auto}
+.btn{border:none;border-radius:12px;padding:9px 15px;font-size:clamp(15px,1.5vw,18px);cursor:pointer;background:var(--orange);color:#fff}
+.btn.ghost{background:#F8D3CA;color:var(--label)}
+.btn.sel{outline:3px solid var(--label)}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.big{font-size:clamp(18px,2vw,24px);color:var(--yellow);margin:0}
+.note{font-size:13px;color:var(--muted)}
+canvas{display:block;width:100%;border-radius:14px}
+input[type=range]{width:100%;accent-color:var(--orange)}
+label.sl{display:block;font-size:16px}
+label.sl b{font-family:"Do Hyeon",sans-serif;font-weight:400;color:var(--label)}
+.val{font-size:22px;color:var(--label)}
+.card{background:#fff;border-radius:12px;padding:10px 12px;line-height:1.6;font-size:17px}
+.card .eq{font-family:"Do Hyeon",sans-serif;font-size:21px;color:var(--red)}
+.segs{display:flex;gap:6px}
+.seg{flex:1;border:none;border-radius:10px;padding:8px 0;background:#F8D3CA;color:var(--label);font-size:18px;cursor:pointer}
+.seg.on{background:var(--orange);color:#fff}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.readout div{background:#fff;border-radius:10px;padding:6px 8px;text-align:center;font-size:14px;color:var(--muted)}
+.readout b{display:block;font-family:"Do Hyeon",sans-serif;font-weight:400;font-size:22px;color:var(--ink)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:2px solid #F3C2B6;background:#fff;border-radius:999px;padding:5px 12px;font-size:15px;cursor:pointer;user-select:none}
+.chip.on{border-color:var(--orange);background:#FDEBE6}
+.ex{background:#fff;border:2px solid #F3C2B6;border-radius:12px;padding:8px 10px;cursor:pointer;font-size:16px}
+.ex.on{border-color:var(--orange);background:#FDEBE6}
+.ans{display:none;color:var(--red);font-family:"Do Hyeon",sans-serif;font-size:18px}
+.ans.show{display:block}
+table.mini{border-collapse:collapse;font-size:14px;width:100%}
+table.mini td,table.mini th{border:1px solid #F3C2B6;padding:3px 4px;text-align:center}
+footer{font-size:12px;color:var(--muted);padding:0 18px 8px}
+@media (max-width:860px){.board{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>열에 의한 물질의 변화</h1>
+    <div class="sub">역학과 에너지 · Ⅱ. 열과 에너지 · 02. 열에 의한 물질의 변화</div>
+  </div>
+  <nav role="tablist">
+    <button class="tab on" data-t="t1">① 가열 곡선</button>
+    <button class="tab" data-t="t2">② 기체 입자 실험</button>
+    <button class="tab" data-t="t3">③ PV = nRT</button>
+    <button class="tab" data-t="t4">④ 비열 비교</button>
+  </nav>
+</header>
+
+<main>
+<!-- ================= TAB 1 : 가열 곡선 ================= -->
+<section class="board on" id="t1">
+  <div class="left">
+    <p class="big">-5 ℃ 얼음 1 g에 열을 계속 가하면? (1 기압)</p>
+    <canvas id="c1" width="900" height="470"></canvas>
+    <div class="row" style="color:var(--chalk);font-size:15px">
+      <label><input type="radio" name="scale1" value="shape" checked> 모양 보기(구간을 비슷한 너비로)</label>
+      <label><input type="radio" name="scale1" value="real"> 실제 비율(가한 열량 그대로)</label>
+    </div>
+  </div>
+  <div class="panel">
+    <canvas id="beaker" width="420" height="250" style="background:#eef3f7"></canvas>
+    <div class="readout">
+      <div>온도<b id="r1T">-5.0 ℃</b></div>
+      <div>가한 열량<b id="r1Q">0 J</b></div>
+      <div>상태<b id="r1S">얼음</b></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="play1">▶ 가열</button>
+      <button class="btn ghost" id="reset1">처음으로</button>
+      <label class="sl" style="flex:1;min-width:150px"><b>가열 세기</b> <span id="pw1">보통</span>
+        <input type="range" id="pow1" min="1" max="3" value="2"></label>
+    </div>
+    <div class="segs" id="segs">
+      <button class="seg" data-s="0">A</button><button class="seg" data-s="1">B</button><button class="seg" data-s="2">C</button><button class="seg" data-s="3">D</button><button class="seg" data-s="4">E</button>
+    </div>
+    <div class="card" id="segCard">구간 버튼(A~E)을 누르면 그 구간에 필요한 열량을 볼 수 있어요.</div>
+    <div class="note">비열: 얼음 2100, 물 4186, 수증기 2010 J/(kg·K) · 융해열 3.33×10⁵ J/kg · 기화열 2.26×10⁶ J/kg (교과서 60~62쪽)</div>
+  </div>
+</section>
+
+<!-- ================= TAB 2 : 기체 입자 실험 ================= -->
+<section class="board" id="t2">
+  <div class="left">
+    <div class="row">
+      <button class="btn ghost mode2 sel" data-m="boyle">온도 일정 (P–V)</button>
+      <button class="btn ghost mode2" data-m="gay">부피 일정 (P–T)</button>
+      <button class="btn ghost mode2" data-m="charles">압력 일정 (V–T)</button>
+    </div>
+    <canvas id="box" width="900" height="300" style="background:#FFF9F0"></canvas>
+    <canvas id="g2" width="900" height="300" style="background:#FFFFFF"></canvas>
+  </div>
+  <div class="panel">
+    <p class="val" id="m2title">온도가 일정할 때 압력과 부피</p>
+    <div class="readout">
+      <div>압력<b id="r2P">-</b></div>
+      <div>부피<b id="r2V">-</b></div>
+      <div>온도<b id="r2T">-</b></div>
+    </div>
+    <div class="note" style="font-size:15px;color:var(--ink)">벽 100 px당 1초 동안 부딪힌 횟수: <b id="r2H" style="font-family:'Do Hyeon';font-weight:400;font-size:19px">-</b> 회</div>
+    <label class="sl" id="slV"><b>부피</b> <span id="vV">50 mL</span><input type="range" id="inV" min="20" max="60" step="1" value="50"></label>
+    <label class="sl" id="slT"><b>온도</b> <span id="vT">293 K</span><input type="range" id="inT" min="200" max="400" step="1" value="293"></label>
+    <div class="row">
+      <button class="btn" id="rec2">📍 지금 값 기록</button>
+      <button class="btn ghost" id="clr2">기록 지우기</button>
+    </div>
+    <div class="row" style="font-size:15px">
+      <label><input type="checkbox" id="book2"> 교과서 실험값 겹쳐 보기</label>
+      <label id="invWrap"><input type="checkbox" id="inv2"> 가로축을 1/V로</label>
+    </div>
+    <div class="card" id="exp2">피스톤을 밀어 부피를 줄여 보자. 입자가 벽에 더 자주 부딪히면서 압력이 커진다.</div>
+    <div class="note">입자끼리는 부딪히지 않는 이상 기체 모형이에요. 압력은 입자들의 평균 운동 에너지와 부피로 계산해요(기체 운동론). 기준: 50 mL, 293 K에서 약 101 kPa.</div>
+  </div>
+</section>
+
+<!-- ================= TAB 3 : PV=nRT ================= -->
+<section class="board" id="t3">
+  <div class="left">
+    <canvas id="cyl" width="900" height="430" style="background:#FFF9F0"></canvas>
+    <div class="card" style="text-align:center"><span class="eq" id="eq3"></span></div>
+  </div>
+  <div class="panel">
+    <div class="row"><b style="font-family:'Do Hyeon';font-weight:400;color:var(--label)">계산할 값:</b>
+      <label><input type="radio" name="calc3" value="P" checked> P</label>
+      <label><input type="radio" name="calc3" value="V"> V</label>
+      <label><input type="radio" name="calc3" value="T"> T</label>
+      <label><input type="radio" name="calc3" value="n"> n</label>
+    </div>
+    <label class="sl"><b>압력 P</b> <span id="v3P"></span><input type="range" id="i3P" min="20" max="400" step="1"></label>
+    <label class="sl"><b>부피 V</b> <span id="v3V"></span><input type="range" id="i3V" min="5" max="60" step="0.5"></label>
+    <label class="sl"><b>온도 T</b> <span id="v3T"></span><input type="range" id="i3T" min="150" max="600" step="1"></label>
+    <label class="sl"><b>몰수 n</b> <span id="v3n"></span><input type="range" id="i3n" min="0.1" max="3" step="0.05"></label>
+    <div class="note">R = 8.31 J/(mol·K) · kPa × L = J 이라서 P(kPa) × V(L) = n × 8.31 × T(K)</div>
+    <b style="font-family:'Do Hyeon';font-weight:400;color:var(--label);font-size:19px">생활 속 예 — 먼저 예측하고 ▶ 실행!</b>
+    <div id="exList" style="display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+</section>
+
+<!-- ================= TAB 4 : 비열 비교 ================= -->
+<section class="board" id="t4">
+  <div class="left">
+    <p class="big">같은 질량(100 g)에 같은 세기(50 W)로 열을 가하면?</p>
+    <canvas id="c4" width="900" height="330" style="background:#FFFFFF"></canvas>
+    <canvas id="sea" width="900" height="170" style="background:#cfe8f7"></canvas>
+  </div>
+  <div class="panel">
+    <b style="font-family:'Do Hyeon';font-weight:400;color:var(--label);font-size:19px">비교할 물질 고르기</b>
+    <div class="chips" id="chips4"></div>
+    <div class="row">
+      <button class="btn" id="play4">▶ 가열</button>
+      <button class="btn ghost" id="reset4">처음으로</button>
+      <span class="val" id="time4">0 초</span>
+    </div>
+    <table class="mini" id="tbl4"></table>
+    <div class="card">같은 열을 받아도 <b style="color:var(--red)">비열이 큰 물질</b>은 온도가 <b style="color:var(--red)">천천히</b> 올라가요. <br><span style="font-family:"Do Hyeon"">Q = c m ΔT</span> → ΔT = Q ÷ (c m)</div>
+    <div class="row"><b style="font-family:'Do Hyeon';font-weight:400;color:var(--label)">바닷가의 바람</b>
+      <button class="btn ghost" id="day4">☀ 낮</button><button class="btn ghost" id="night4">☾ 밤</button></div>
+    <div class="card" id="seaTxt" style="font-size:16px"></div>
+    <div class="note">비열 값은 교과서 60쪽 표(은 230, 구리 390, 철 450, 유리 840, 알루미늄 900, 물 4186 J/(kg·K)). 열 손실은 없다고 가정한 계산이에요.</div>
+  </div>
+</section>
+</main>
+<footer>역학과 에너지 수업용 · 교과서 60~67쪽 내용을 바탕으로 만든 학습용 모형</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+let current='t1';
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.board').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));
+  current=b.dataset.t; if(current==='t2')draw2g(); if(current==='t4'){draw4();drawSea();}
+});
+const fmt=(x,d=1)=>Number(x).toFixed(d);
+
+/* ======================= TAB 1 ======================= */
+const m1=0.001, cI=2100, cW=4186, cS=2010, Lf=3.33e5, Lv=2.26e6;
+const SEG=[ // [name, Q, T0, T1, desc]
+  {k:'A',Q:cI*m1*5,  T0:-5, T1:0,   st:'얼음', eq:'Q<sub>A</sub> = c<sub>얼음</sub> m ΔT = 2100 × 0.001 × 5 = 10.5 J', why:'얼음의 온도가 -5 ℃에서 0 ℃로 올라가요.'},
+  {k:'B',Q:Lf*m1,    T0:0,  T1:0,   st:'얼음+물', eq:'Q<sub>B</sub> = L<sub>융해</sub> m = 3.33×10⁵ × 0.001 = 333 J', why:'얼음이 녹는 동안 열을 받아도 온도는 0 ℃ 그대로예요. 열은 입자 사이의 결합을 끊는 데 쓰여요(융해열).'},
+  {k:'C',Q:cW*m1*100,T0:0,  T1:100, st:'물', eq:'Q<sub>C</sub> = c<sub>물</sub> m ΔT = 4186 × 0.001 × 100 = 418.6 J', why:'물의 온도가 0 ℃에서 100 ℃로 올라가요. 물의 비열이 얼음보다 커서 A 구간보다 기울기가 완만해요.'},
+  {k:'D',Q:Lv*m1,    T0:100,T1:100, st:'물+수증기', eq:'Q<sub>D</sub> = L<sub>기화</sub> m = 2.26×10⁶ × 0.001 = 2260 J', why:'물이 끓는 동안 온도는 100 ℃ 그대로예요. 기화열이 융해열보다 커서 가장 긴 구간이에요.'},
+  {k:'E',Q:cS*m1*20, T0:100,T1:120, st:'수증기', eq:'Q<sub>E</sub> = c<sub>수증기</sub> m ΔT = 2010 × 0.001 × 20 = 40.2 J', why:'수증기의 온도가 100 ℃에서 120 ℃로 올라가요.'}
+];
+let acc=0; SEG.forEach(s=>{s.q0=acc;acc+=s.Q;s.q1=acc}); const QTOT=acc; // 3062.3 J
+const SHAPEW=[1,1.6,1.8,2.6,1];
+let Q1=0, run1=false, segSel=-1;
+function state1(Q){ for(let i=0;i<5;i++){const s=SEG[i]; if(Q<=s.q1+1e-9){const f=(Q-s.q0)/s.Q; return {i,f:Math.max(0,Math.min(1,f)),T:s.T0+(s.T1-s.T0)*Math.max(0,Math.min(1,f))}}} return {i:4,f:1,T:120}; }
+function xOf(Q,W){ const real=document.querySelector('input[name=scale1]:checked').value==='real';
+  if(real) return Q/QTOT*W;
+  const tot=SHAPEW.reduce((a,b)=>a+b); let x=0;
+  for(let i=0;i<5;i++){const s=SEG[i]; if(Q<=s.q1){return (x+(Q-s.q0)/s.Q*SHAPEW[i])/tot*W} x+=SHAPEW[i]} return W; }
+function draw1(){
+  const cv=$('c1'),c=cv.getContext('2d'),w=cv.width,h=cv.height,L=70,R=24,T=20,B=50,W=w-L-R,H=h-T-B;
+  c.clearRect(0,0,w,h); c.fillStyle='#FFFFFF'; c.fillRect(0,0,w,h);
+  const Y=t=>T+H-(t+20)/(140)*H, X=q=>L+xOf(q,W);
+  // segment shading
+  SEG.forEach((s,i)=>{c.fillStyle=i===segSel?'rgba(227,97,74,.18)':(i%2?'rgba(53,65,90,.05)':'rgba(53,65,90,.0)');c.fillRect(X(s.q0),T,X(s.q1)-X(s.q0),H);
+    c.fillStyle=i===segSel?'#E3614A':'#B9B9C2';c.font='22px "Do Hyeon"';c.textAlign='center';c.fillText(s.k,(X(s.q0)+X(s.q1))/2,T+24)});
+  // axes
+  c.strokeStyle='#EEE4DA';c.lineWidth=1;c.fillStyle='#8C8C96';c.font='15px Noto Sans KR';c.textAlign='right';
+  for(let t=-20;t<=120;t+=20){c.beginPath();c.moveTo(L,Y(t));c.lineTo(L+W,Y(t));c.stroke();c.fillText(t,L-8,Y(t)+5)}
+  c.save();c.translate(18,T+H/2);c.rotate(-Math.PI/2);c.textAlign='center';c.font='16px "Do Hyeon"';c.fillText('온도(℃)',0,0);c.restore();
+  c.textAlign='center';c.font='16px "Do Hyeon"';c.fillText(document.querySelector('input[name=scale1]:checked').value==='real'?'가한 열량 (J) → 일정하게 가열하면 가열 시간':'가한 열량(가열 시간) → 구간 너비는 실제 비율과 달라요',L+W/2,h-12);
+  if(document.querySelector('input[name=scale1]:checked').value==='real'){c.font='13px Noto Sans KR';for(let q=0;q<=3000;q+=500)c.fillText(q,L+q/QTOT*W,T+H+18)}
+  // full ghost curve + drawn part
+  const pts=[]; for(let i=0;i<=600;i++){const q=QTOT*i/600;pts.push([X(q),Y(state1(q).T),q])}
+  c.strokeStyle='#e4dcc4';c.lineWidth=3;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();
+  c.strokeStyle='#E3614A';c.lineWidth=5;c.beginPath();let first=true;pts.forEach(p=>{if(p[2]<=Q1){first?c.moveTo(p[0],p[1]):c.lineTo(p[0],p[1]);first=false}});
+  const st=state1(Q1);c.lineTo(X(Q1),Y(st.T));c.stroke();
+  c.fillStyle='#E3614A';c.beginPath();c.arc(X(Q1),Y(st.T),8,0,7);c.fill();
+}
+// beaker particles
+const NB=42, bp=[]; for(let i=0;i<NB;i++){const gx=i%7,gy=Math.floor(i/7);bp.push({hx:140+gx*24,hy:225-gy*24,x:140+gx*24,y:225-gy*24,vx:0,vy:0,phase:Math.random()*6.3,gas:false,free:false})}
+function drawBeaker(dt){
+  const cv=$('beaker'),c=cv.getContext('2d'),w=cv.width,h=cv.height; c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,w,h); c.translate(-60,0);
+  const st=state1(Q1); const melt = st.i<1?0: st.i===1?st.f:1; const boil= st.i<3?0: st.i===3?st.f:1;
+  const Tk=st.T+273; const sp=Math.sqrt(Tk/273);
+  // container
+  c.strokeStyle='#7c8a96';c.lineWidth=4;c.beginPath();c.moveTo(90,10);c.lineTo(90,240);c.lineTo(330,240);c.lineTo(330,10);c.stroke();
+  // flame
+  if(run1){c.fillStyle='rgba(227,97,74,.85)';for(let k=0;k<5;k++){c.beginPath();const fx=130+k*42;c.moveTo(fx-10,h);c.quadraticCurveTo(fx,h-18-Math.random()*8,fx+10,h);c.fill()}}
+  const nFree=Math.round(melt*NB), nGas=Math.round(boil*NB);
+  bp.forEach((p,i)=>{
+    p.free = i>=NB-nFree || melt>=1; p.gas = i<nGas;
+    if(!p.free){ // vibrate on lattice
+      p.phase+=dt*(6+st.T*0.3); const a=2+ (st.T+5)*0.6; p.x=p.hx+Math.sin(p.phase)*a; p.y=p.hy+Math.cos(p.phase*1.3)*a; p.vx=(Math.random()-.5)*60;p.vy=(Math.random()-.5)*60;
+    } else {
+      const lim = p.gas?{x0:96,x1:324,y0:16,y1:234}:{x0:96,x1:324,y0:110,y1:234};
+      const target = p.gas? 260*sp : 70*sp;
+      const v=Math.hypot(p.vx,p.vy)||1; const k=1+(target/v-1)*Math.min(1,dt*3); p.vx*=k;p.vy*=k;
+      if(!p.gas) p.vy+=60*dt; // liquid sinks
+      p.x+=p.vx*dt;p.y+=p.vy*dt;
+      if(p.x<lim.x0){p.x=lim.x0;p.vx=Math.abs(p.vx)} if(p.x>lim.x1){p.x=lim.x1;p.vx=-Math.abs(p.vx)}
+      if(p.y<lim.y0){p.y=lim.y0;p.vy=Math.abs(p.vy)} if(p.y>lim.y1){p.y=lim.y1;p.vy=-Math.abs(p.vy)}
+    }
+    c.fillStyle=p.gas?'#E3614A':(p.free?'#3D7FD9':'#7fb4e6'); c.beginPath();c.arc(p.x,p.y,9,0,7);c.fill();
+    c.strokeStyle='rgba(0,0,0,.15)';c.lineWidth=1;c.stroke();
+  });
+  // bonds for solid
+  c.strokeStyle='rgba(47,111,181,.25)';c.lineWidth=2;bp.forEach((p,i)=>{if(p.free)return;const r=bp[i+1];if(r&&!r.free&&i%7!==6){c.beginPath();c.moveTo(p.x,p.y);c.lineTo(r.x,r.y);c.stroke()}const u=bp[i+7];if(u&&!u.free){c.beginPath();c.moveTo(p.x,p.y);c.lineTo(u.x,u.y);c.stroke()}});
+  c.setTransform(1,0,0,1,0,0);
+  c.fillStyle='#1D1F26';c.font='16px "Do Hyeon"';c.textAlign='left';
+  c.fillText('● 얼음(고체)',290,40);c.fillStyle='#3D7FD9';c.fillText('● 물(액체)',290,66);c.fillStyle='#E3614A';c.fillText('● 수증기(기체)',290,92);
+  // thermometer
+  c.fillStyle='#fff';c.fillRect(300,110,22,120);c.strokeStyle='#999';c.strokeRect(300,110,22,120);
+  const tt=Math.max(0,Math.min(1,(st.T+20)/140));c.fillStyle='#E3614A';c.fillRect(304,226-112*tt,14,112*tt+2);
+  c.fillStyle='#1D1F26';c.font='15px "Do Hyeon"';c.fillText(fmt(st.T)+' ℃',330,226-112*tt+5);
+}
+function upd1(){const st=state1(Q1);$('r1T').textContent=fmt(st.T)+' ℃';$('r1Q').textContent=fmt(Q1,Q1<100?1:0)+' J';$('r1S').textContent=SEG[st.i].st+(Q1>=QTOT?'':'');
+  document.querySelectorAll('.seg').forEach((b,i)=>b.classList.toggle('on',i===segSel));}
+function showSeg(i){segSel=i;const s=SEG[i];$('segCard').innerHTML=`<b style="font-family:'Do Hyeon';font-weight:400;font-size:20px;color:var(--label)">구간 ${s.k} · ${s.st}</b><br>${s.why}<br><span class="eq">${s.eq}</span>`+(i===4?`<br><span style="font-size:15px">A~E 전체: 10.5 + 333 + 418.6 + 2260 + 40.2 = <b>3062.3 J</b></span>`:'');upd1();draw1()}
+document.querySelectorAll('.seg').forEach(b=>b.onclick=()=>showSeg(+b.dataset.s));
+document.querySelectorAll('input[name=scale1]').forEach(r=>r.onchange=draw1);
+const POW=[0,40,110,320], PWN=['','약하게','보통','세게'];
+$('pow1').oninput=()=>$('pw1').textContent=PWN[$('pow1').value];
+$('play1').onclick=()=>{ if(Q1>=QTOT){Q1=0;} run1=!run1; $('play1').textContent=run1?'⏸ 멈춤':'▶ 가열'; };
+$('reset1').onclick=()=>{Q1=0;run1=false;$('play1').textContent='▶ 가열';segSel=-1;$('segCard').textContent='구간 버튼(A~E)을 누르면 그 구간에 필요한 열량을 볼 수 있어요.';bp.forEach(p=>{p.x=p.hx;p.y=p.hy});upd1();draw1()};
+
+/* ======================= TAB 2 ======================= */
+const box=$('box'),bx=box.getContext('2d');
+const N2=70, PR=5, BOXH=240, X0b=40, Y0b=30, PXPERML=12;  // length = V*12 px
+let hits=0, hitRate=0, mode2='boyle', V2=50, T2=293, Vtarget=50, pistonX=X0b+V2*PXPERML, impulse=0, Pema=101, rec=[], t2acc=0;
+const parts=[]; function vth(T){return 120*Math.sqrt(T/293)} // px/s (2D rms-ish)
+for(let i=0;i<N2;i++){const a=Math.random()*6.283,v=vth(293)*(0.6+Math.random()*0.8);parts.push({x:X0b+10+Math.random()*(V2*PXPERML-20),y:Y0b+10+Math.random()*(BOXH-20),vx:Math.cos(a)*v,vy:Math.sin(a)*v})}
+// 2D kinetic pressure: P = N <v^2> m /(2 A). Calibrate so 50 mL, 293 K -> 101 kPa
+function meanV2(){let s=0;parts.forEach(p=>s+=p.vx*p.vx+p.vy*p.vy);return s/N2}
+let KCAL=null;
+function Ptheory(){return KCAL*N2*meanV2()/(2*(pistonX-X0b)*BOXH)}
+function step2(dt){
+  // target volume by mode
+  if(mode2==='charles') Vtarget=50*T2/293;
+  V2+= (Vtarget-V2)*Math.min(1,dt*2.5);
+  const newX=X0b+V2*PXPERML, u=(newX-pistonX)/Math.max(dt,1e-3); pistonX=newX;
+  // thermostat toward T2
+  const want=vth(T2)*vth(T2), have=meanV2(); const k=Math.sqrt(1+(want/have-1)*Math.min(1,dt*4)); parts.forEach(p=>{p.vx*=k;p.vy*=k});
+  let nhit=0;
+  parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;
+    if(p.x<X0b+PR){p.x=X0b+PR;p.vx=Math.abs(p.vx);nhit++}
+    if(p.x>pistonX-PR){p.x=pistonX-PR;const rel=p.vx-u;if(rel>0){p.vx=-p.vx+2*u;nhit++}}
+    if(p.y<Y0b+PR){p.y=Y0b+PR;p.vy=Math.abs(p.vy);nhit++}
+    if(p.y>Y0b+BOXH-PR){p.y=Y0b+BOXH-PR;p.vy=-Math.abs(p.vy);nhit++}});
+  hits+=nhit;
+  // 압력: 입자들의 평균 운동 에너지와 넓이(부피)로 계산 (2차원 기체 운동론 P = N m<v²>/2A)
+  Pema += (Ptheory()-Pema)*Math.min(1,dt/0.35);
+}
+function draw2(){
+  const w=box.width,h=box.height; bx.clearRect(0,0,w,h);
+  bx.fillStyle='#fbfaf5';bx.fillRect(X0b,Y0b,pistonX-X0b,BOXH);
+  bx.strokeStyle='#5d6b74';bx.lineWidth=5;bx.beginPath();bx.moveTo(X0b+X0b*0+760,Y0b);bx.lineTo(X0b,Y0b);bx.lineTo(X0b,Y0b+BOXH);bx.lineTo(X0b+760,Y0b+BOXH);bx.stroke();
+  // piston
+  bx.fillStyle='#9aa7b0';bx.fillRect(pistonX,Y0b-6,14,BOXH+12);bx.fillRect(pistonX+14,Y0b+BOXH/2-8,w-pistonX-14,16);
+  // heater color by T
+  const hT=(T2-200)/200; bx.fillStyle=`rgb(${Math.round(80+175*hT)},${Math.round(120-60*hT)},${Math.round(220-180*hT)})`;bx.fillRect(X0b,Y0b+BOXH+6,pistonX-X0b,10);
+  const vref=vth(293);
+  parts.forEach(p=>{const s=Math.hypot(p.vx,p.vy)/vref; const r=Math.min(255,Math.round(60+150*s)), b=Math.max(0,Math.round(240-150*s));
+    bx.fillStyle=`rgb(${r},90,${b})`;bx.beginPath();bx.arc(p.x,p.y,PR,0,7);bx.fill()});
+  bx.fillStyle='#1D1F26';bx.font='17px "Do Hyeon"';bx.textAlign='left';
+  bx.fillText(mode2==='boyle'?'온도 일정 – 피스톤을 움직여 부피를 바꿔요':mode2==='gay'?'부피 일정 – 피스톤 고정, 가열/냉각':'압력 일정 – 피스톤이 자유롭게 움직여요',X0b,20);
+  bx.font='14px Noto Sans KR';bx.fillStyle='#8C8C96';bx.fillText('입자 색: 파랑(느림) → 빨강(빠름)',X0b,h-4);
+}
+const BOOK={boyle:[[50,100.9],[45,110.7],[40,122.9],[35,138.0],[30,157.1]], gay:[[278.2,101.1],[286.7,104.0],[316.5,115.3]]};
+function draw2g(){
+  const cv=$('g2'),c=cv.getContext('2d'),w=cv.width,h=cv.height,L=70,R=20,T=16,B=46,W=w-L-R,H=h-T-B; c.clearRect(0,0,w,h);
+  const inv=$('inv2').checked&&mode2==='boyle';
+  let xs,ys,xl,yl,xmin,xmax,ymin,ymax,xf,yf;
+  if(mode2==='boyle'){ if(inv){xmin=0;xmax=0.06;xl='1/V (1/mL)'}else{xmin=0;xmax=60;xl='부피 V (mL)'} ymin=0;ymax=300;yl='압력 P (kPa)'; xf=r=>inv?1/r.V:r.V; yf=r=>r.P}
+  else if(mode2==='gay'){xmin=0;xmax=420;xl='절대 온도 T (K)';ymin=0;ymax=150;yl='압력 P (kPa)';xf=r=>r.T;yf=r=>r.P}
+  else {xmin=0;xmax=420;xl='절대 온도 T (K)';ymin=0;ymax=75;yl='부피 V (mL)';xf=r=>r.T;yf=r=>r.V}
+  const X=v=>L+(v-xmin)/(xmax-xmin)*W, Y=v=>T+H-(v-ymin)/(ymax-ymin)*H;
+  c.strokeStyle='#EEE4DA';c.fillStyle='#8C8C96';c.font='14px Noto Sans KR';c.lineWidth=1;
+  for(let i=0;i<=5;i++){const v=ymin+(ymax-ymin)*i/5;c.beginPath();c.moveTo(L,Y(v));c.lineTo(L+W,Y(v));c.stroke();c.textAlign='right';c.fillText(Math.round(v),L-6,Y(v)+5)}
+  for(let i=0;i<=6;i++){const v=xmin+(xmax-xmin)*i/6;c.textAlign='center';c.fillText(inv?v.toFixed(3):Math.round(v),X(v),T+H+18)}
+  c.font='16px "Do Hyeon"';c.fillStyle='#35415A';c.textAlign='center';c.fillText(xl,L+W/2,h-6);
+  c.save();c.translate(16,T+H/2);c.rotate(-Math.PI/2);c.fillText(yl,0,0);c.restore();
+  // theory curve
+  c.strokeStyle='rgba(47,111,181,.35)';c.lineWidth=2;c.setLineDash([6,5]);c.beginPath();
+  for(let i=0;i<=200;i++){let xv,yv;
+    if(mode2==='boyle'){ if(inv){xv=xmax*i/200;yv=101*50*xv/ (293/T2) ;yv=101*50*xv*T2/293}else{xv=15+i/200*50;yv=101*50/xv*T2/293} }
+    else if(mode2==='gay'){xv=xmax*i/200;yv=101*(xv/293)*(V2>0?50/V2:1)}
+    else {xv=xmax*i/200;yv=50*xv/293}
+    if(yv>ymax)continue; i?c.lineTo(X(xv),Y(yv)):c.moveTo(X(xv),Y(yv))}
+  c.stroke();c.setLineDash([]);
+  // book data
+  if($('book2').checked&&BOOK[mode2]){c.fillStyle='#E3614A';BOOK[mode2].forEach(d=>{const xv=mode2==='boyle'&&inv?1/d[0]:d[0];c.beginPath();c.rect(X(xv)-6,Y(d[1])-6,12,12);c.fill()});
+    c.font='14px Noto Sans KR';c.textAlign='left';c.fillText('■ 교과서 실험값',L+10,T+16)}
+  // recorded
+  c.fillStyle='#E3614A';rec.filter(r=>r.m===mode2).forEach(r=>{c.beginPath();c.arc(X(xf(r)),Y(yf(r)),7,0,7);c.fill()});
+  // current marker
+  const cur={V:V2,P:Pema,T:T2}; c.strokeStyle='#E3614A';c.lineWidth=2;c.beginPath();c.arc(X(xf(cur)),Y(Math.min(ymax,yf(cur))),10,0,7);c.stroke();
+  c.font='14px Noto Sans KR';c.fillStyle='#3D7FD9';c.textAlign='right';c.fillText('점선: 이론값  ● 내가 기록한 값',L+W-4,T+16);
+}
+function setMode2(m){mode2=m;document.querySelectorAll('.mode2').forEach(b=>b.classList.toggle('sel',b.dataset.m===m));
+  const titles={boyle:'온도가 일정할 때 압력과 부피',gay:'부피가 일정할 때 압력과 온도',charles:'압력이 일정할 때 부피와 온도'};
+  const ex={boyle:'피스톤을 밀어 부피를 줄여 보자. 같은 수의 입자가 좁은 공간에서 벽에 더 자주 부딪혀 <b>압력이 커진다</b>. → <b>P × V = 일정</b> (보일 법칙)',
+    gay:'부피를 고정하고 온도를 올려 보자. 입자가 빨라져 벽을 더 세게, 더 자주 친다. → <b>압력 ∝ 절대 온도</b>. 직선을 늘이면 0 K에서 압력이 0이 된다.',
+    charles:'압력을 일정하게 두고 온도를 올리면 입자가 빨라져 피스톤을 밀어낸다. → <b>부피 ∝ 절대 온도</b> (샤를 법칙)'};
+  $('m2title').textContent=titles[m];$('exp2').innerHTML=ex[m];
+  $('inV').disabled=m!=='boyle'; $('inT').disabled=m==='boyle'; $('invWrap').style.display=m==='boyle'?'':'none';
+  if(m==='boyle'){T2=293;$('inT').value=293} else if(m==='gay'){Vtarget=50;$('inV').value=50}
+  $('book2').parentElement.style.display=BOOK[m]?'':'none';
+  syncLabels2();draw2g();}
+function syncLabels2(){$('vV').textContent=(mode2==='charles'?fmt(Vtarget,1):Math.round(Vtarget))+' mL';$('vT').textContent=Math.round(T2)+' K ('+Math.round(T2-273)+' ℃)'}
+document.querySelectorAll('.mode2').forEach(b=>b.onclick=()=>setMode2(b.dataset.m));
+$('inV').oninput=()=>{Vtarget=+$('inV').value;syncLabels2()};
+$('inT').oninput=()=>{T2=+$('inT').value;syncLabels2()};
+$('rec2').onclick=()=>{rec.push({m:mode2,V:V2,P:Pema,T:T2});draw2g()};
+$('clr2').onclick=()=>{rec=rec.filter(r=>r.m!==mode2);draw2g()};
+$('book2').onchange=draw2g;$('inv2').onchange=draw2g;
+// calibrate KCAL from theory at 50 mL, 293 K
+(function(){const A=50*PXPERML*BOXH; const v2=parts.reduce((s,p)=>s+p.vx*p.vx+p.vy*p.vy,0)/N2; const target=vth(293)**2; KCAL=101/((N2*target)/(2*A));})();
+
+/* ======================= TAB 3 ======================= */
+const R3=8.31; let s3={P:101.3,V:24.0,T:293,n:1.0}, calc3='P', anim3=null;
+const rng3={P:[20,400],V:[5,60],T:[150,600],n:[0.1,3]};
+function solve3(){ if(calc3==='P')s3.P=s3.n*R3*s3.T/s3.V; if(calc3==='V')s3.V=s3.n*R3*s3.T/s3.P; if(calc3==='T')s3.T=s3.P*s3.V/(s3.n*R3); if(calc3==='n')s3.n=s3.P*s3.V/(R3*s3.T);}
+function sync3(){ ['P','V','T','n'].forEach(k=>{const el=$('i3'+k);el.disabled=(k===calc3);el.value=s3[k];});
+  const out=k=>{const v=s3[k],[a,b]=rng3[k];return (v<a||v>b)?' ⚠ 범위 밖':''};
+  $('v3P').textContent=fmt(s3.P,1)+' kPa'+out('P');$('v3V').textContent=fmt(s3.V,1)+' L'+out('V');$('v3T').textContent=Math.round(s3.T)+' K ('+Math.round(s3.T-273)+' ℃)'+out('T');$('v3n').textContent=fmt(s3.n,2)+' mol'+out('n');
+  $('eq3').innerHTML=`P V = n R T &nbsp;→&nbsp; ${fmt(s3.P,1)} × ${fmt(s3.V,1)} = ${fmt(s3.n,2)} × 8.31 × ${Math.round(s3.T)} &nbsp;(≈ ${Math.round(s3.P*s3.V)} J)`;}
+['P','V','T','n'].forEach(k=>$('i3'+k).oninput=()=>{s3[k]=+$('i3'+k).value;solve3();sync3()});
+document.querySelectorAll('input[name=calc3]').forEach(r=>r.onchange=()=>{calc3=r.value;solve3();sync3()});
+const cyl=$('cyl'),cc=cyl.getContext('2d'); const p3=[]; for(let i=0;i<90;i++){const a=Math.random()*6.283;p3.push({x:Math.random(),y:Math.random(),a})}
+function draw3(dt){
+  const w=cyl.width,h=cyl.height; cc.clearRect(0,0,w,h);
+  const cx=170,cw=360,bottom=400, top=40, Vh= 50+((Math.min(60,Math.max(5,s3.V))-5)/55)*(bottom-top-200); const py=bottom-Vh;
+  // cylinder
+  cc.strokeStyle='#5d6b74';cc.lineWidth=5;cc.beginPath();cc.moveTo(cx,top);cc.lineTo(cx,bottom);cc.lineTo(cx+cw,bottom);cc.lineTo(cx+cw,top);cc.stroke();
+  cc.fillStyle='#fbfaf5';cc.fillRect(cx+3,py,cw-6,bottom-py-3);
+  cc.fillStyle='#9aa7b0';cc.fillRect(cx+3,py-16,cw-6,16);
+  // 추(바깥에서 누르는 압력 표시)
+  const nw=Math.max(1,Math.min(8,Math.round(s3.P/50))); for(let i=0;i<nw;i++){cc.fillStyle='#6d5a43';cc.fillRect(cx+cw/2-50,py-30-i*14,100,12)}
+  cc.fillStyle='#8C8C96';cc.font='14px Noto Sans KR';cc.textAlign='center';cc.fillText('추가 많을수록 바깥 압력이 큼',cx+cw/2,py-40-nw*14);
+  // particles
+  const nShow=Math.max(4,Math.round(Math.min(3,Math.max(0.1,s3.n))*30)), spd=Math.sqrt(Math.max(50,s3.T)/300)*0.35;
+  for(let i=0;i<nShow;i++){const p=p3[i];p.x+=Math.cos(p.a)*spd*dt;p.y+=Math.sin(p.a)*spd*dt*1.4;
+    if(p.x<0){p.x=0;p.a=Math.PI-p.a} if(p.x>1){p.x=1;p.a=Math.PI-p.a} if(p.y<0){p.y=0;p.a=-p.a} if(p.y>1){p.y=1;p.a=-p.a}
+    const t=(s3.T-150)/450; cc.fillStyle=`rgb(${Math.round(60+190*t)},90,${Math.round(230-190*t)})`;
+    cc.beginPath();cc.arc(cx+12+p.x*(cw-24),py+10+p.y*(bottom-py-22),6,0,7);cc.fill()}
+  // gauge
+  const gx=700,gy=150,gr=90; cc.fillStyle='#fff';cc.beginPath();cc.arc(gx,gy,gr,0,7);cc.fill();cc.strokeStyle='#5d6b74';cc.lineWidth=4;cc.stroke();
+  cc.lineWidth=2;for(let i=0;i<=8;i++){const a=Math.PI*0.75+i/8*Math.PI*1.5;cc.beginPath();cc.moveTo(gx+Math.cos(a)*(gr-12),gy+Math.sin(a)*(gr-12));cc.lineTo(gx+Math.cos(a)*gr,gy+Math.sin(a)*gr);cc.stroke();
+    cc.fillStyle='#8C8C96';cc.font='13px Noto Sans KR';cc.textAlign='center';cc.fillText(i*50,gx+Math.cos(a)*(gr-26),gy+Math.sin(a)*(gr-26)+4)}
+  const ga=Math.PI*0.75+Math.min(1,s3.P/400)*Math.PI*1.5; cc.strokeStyle='#E3614A';cc.lineWidth=4;cc.beginPath();cc.moveTo(gx,gy);cc.lineTo(gx+Math.cos(ga)*(gr-18),gy+Math.sin(ga)*(gr-18));cc.stroke();
+  cc.fillStyle='#1D1F26';cc.font='18px "Do Hyeon"';cc.fillText('압력 '+fmt(s3.P,1)+' kPa',gx,gy+gr+28);
+  // thermometer
+  const tx=650,ty=300; cc.fillStyle='#fff';cc.fillRect(tx,ty,200,22);cc.strokeStyle='#999';cc.lineWidth=1;cc.strokeRect(tx,ty,200,22);
+  cc.fillStyle='#E3614A';cc.fillRect(tx+2,ty+3,196*Math.min(1,Math.max(0,(s3.T-150)/450)),16);
+  cc.fillStyle='#1D1F26';cc.textAlign='center';cc.fillText('온도 '+Math.round(s3.T)+' K',tx+100,ty+48);
+  cc.textAlign='left';cc.font='18px "Do Hyeon"';cc.fillText('부피 '+fmt(s3.V,1)+' L',cx+cw+12,py+6);cc.fillText('입자 수 ∝ n = '+fmt(s3.n,2)+' mol',cx,bottom+24>h?h-4:bottom+24);
+}
+const EX3=[
+  {t:'들숨: 가로막이 내려가 폐의 부피가 늘어나면?',fix:'T, n 일정',from:{P:101.3,V:5,T:310,n:0.196},to:{V:5.5},calc:'P',q:'폐 안의 압력은?',a:'압력이 낮아져(약 92 kPa) 바깥 공기가 폐로 들어온다. (교과서 67쪽 호흡의 원리)'},
+  {t:'열기구: 풍선 속 공기를 가열하면?',fix:'P 일정',from:{P:101.3,V:30,T:290,n:1.26},to:{T:370},calc:'V',q:'부피(밀도)는?',a:'부피가 커지고 밀도가 작아져 열기구가 떠오른다. (교과서 67쪽)'},
+  {t:'여름 한낮, 자동차 타이어 속 공기의 온도가 오르면?',fix:'V, n 일정',from:{P:250,V:20,T:288,n:2.09},to:{T:330},calc:'P',q:'타이어 속 압력은?',a:'압력이 커진다. 그래서 여름에는 타이어 공기압을 조금 낮게 넣기도 한다.'},
+  {t:'높은 산에 과자 봉지를 들고 올라가면(바깥 압력↓)?',fix:'T, n 일정',from:{P:101.3,V:10,T:293,n:0.416},to:{P:75},calc:'V',q:'봉지의 부피는?',a:'바깥 압력이 낮아져 봉지 속 기체의 부피가 커진다(봉지가 빵빵해진다).'},
+  {t:'찌그러진 탁구공을 뜨거운 물에 넣으면?',fix:'P 일정(대략)',from:{P:101.3,V:30,T:293,n:1.25},to:{T:350},calc:'V',q:'공 속 기체의 부피는?',a:'온도가 올라 부피가 커지면서 찌그러진 곳이 펴진다.'}
+];
+EX3.forEach((e,i)=>{const d=document.createElement('div');d.className='ex';d.innerHTML=`<b>${i+1}. ${e.t}</b> <span class="note">(${e.fix})</span><br>${e.q} <button class="btn ghost" style="padding:4px 10px;font-size:15px">▶ 실행</button><div class="ans"></div>`;
+  d.querySelector('button').onclick=ev=>{ev.stopPropagation();runEx(i,d)};$('exList').appendChild(d)});
+function runEx(i,d){const e=EX3[i];document.querySelectorAll('.ex').forEach(x=>x.classList.toggle('on',x===d));
+  calc3=e.calc;document.querySelector(`input[name=calc3][value=${e.calc}]`).checked=true;Object.assign(s3,e.from);solve3();sync3();
+  const k=Object.keys(e.to)[0],a=s3[k],b=e.to[k];let t=0;clearInterval(anim3);
+  anim3=setInterval(()=>{t+=0.04;s3[k]=a+(b-a)*Math.min(1,t);solve3();sync3();if(t>=1){clearInterval(anim3);const an=d.querySelector('.ans');an.textContent=e.a;an.classList.add('show')}},40)}
+solve3();sync3();
+
+/* ======================= TAB 4 ======================= */
+const MAT=[{n:'은',c:230,col:'#9aa0a6'},{n:'구리',c:390,col:'#c46a2f'},{n:'철',c:450,col:'#5d6b74'},{n:'유리',c:840,col:'#5fb3b3'},{n:'알루미늄',c:900,col:'#8e7cc3'},{n:'물',c:4186,col:'#3D7FD9'}];
+let sel4=new Set(['구리','알루미늄','물']), t4=0, run4=false; const P4=50, m4=0.1, T04=20, TMAX4=120;
+MAT.forEach(mm=>{const c=document.createElement('span');c.className='chip'+(sel4.has(mm.n)?' on':'');c.textContent=`${mm.n} (${mm.c})`;
+  c.onclick=()=>{if(sel4.has(mm.n)){if(sel4.size>1)sel4.delete(mm.n)}else sel4.add(mm.n);c.classList.toggle('on',sel4.has(mm.n));draw4()};$('chips4').appendChild(c)});
+function T4(mm,t){return T04+P4*t/(mm.c*m4)}
+function draw4(){
+  const cv=$('c4'),c=cv.getContext('2d'),w=cv.width,h=cv.height,L=60,R=170,T=16,B=40,W=w-L-R,H=h-T-B; c.clearRect(0,0,w,h);
+  const ymax=300, X=t=>L+t/TMAX4*W, Y=v=>T+H-(v/ymax)*H;
+  c.strokeStyle='#EEE4DA';c.fillStyle='#8C8C96';c.font='14px Noto Sans KR';
+  for(let v=0;v<=ymax;v+=50){c.beginPath();c.moveTo(L,Y(v));c.lineTo(L+W,Y(v));c.stroke();c.textAlign='right';c.fillText(v,L-6,Y(v)+5)}
+  for(let t=0;t<=TMAX4;t+=20){c.textAlign='center';c.fillText(t,X(t),T+H+18)}
+  c.font='16px "Do Hyeon"';c.fillStyle='#35415A';c.fillText('가열 시간 (초)',L+W/2,h-4);c.save();c.translate(16,T+H/2);c.rotate(-Math.PI/2);c.fillText('온도 (℃)',0,0);c.restore();
+  const rows=[];
+  MAT.filter(mm=>sel4.has(mm.n)).forEach((mm,i)=>{
+    c.strokeStyle=mm.col;c.lineWidth=4;c.beginPath();
+    for(let k=0;k<=100;k++){const t=t4*k/100;const v=Math.min(ymax,T4(mm,t));k?c.lineTo(X(t),Y(v)):c.moveTo(X(t),Y(v))}c.stroke();
+    const v=T4(mm,t4); c.fillStyle=mm.col;c.beginPath();c.arc(X(t4),Y(Math.min(ymax,v)),6,0,7);c.fill();
+    // thermometer bars on right
+    const bx0=L+W+20+i*26; c.fillStyle='#fff';c.fillRect(bx0,T,18,H);c.strokeStyle='#bbb';c.lineWidth=1;c.strokeRect(bx0,T,18,H);
+    c.fillStyle=mm.col;const hh=Math.min(1,v/ymax)*H;c.fillRect(bx0+3,T+H-hh,12,hh);
+    c.save();c.translate(bx0+13,T+H+4);c.rotate(-Math.PI/2.4);c.fillStyle='#1D1F26';c.font='12px Noto Sans KR';c.textAlign='right';c.fillText(mm.n,0,0);c.restore();
+    rows.push(`<tr><td style="color:${mm.col};font-weight:700">${mm.n}</td><td>${mm.c}</td><td>${fmt(v,1)} ℃</td><td>${fmt(v-T04,1)} ℃</td></tr>`)});
+  $('tbl4').innerHTML='<tr><th>물질</th><th>비열</th><th>현재 온도</th><th>올라간 온도</th></tr>'+rows.join('');
+  $('time4').textContent=fmt(t4,0)+' 초 · 가한 열 '+Math.round(P4*t4)+' J';
+}
+$('play4').onclick=()=>{if(t4>=TMAX4)t4=0;run4=!run4;$('play4').textContent=run4?'⏸ 멈춤':'▶ 가열'};
+$('reset4').onclick=()=>{t4=0;run4=false;$('play4').textContent='▶ 가열';draw4()};
+let day=true;
+function drawSea(){
+  const cv=$('sea'),c=cv.getContext('2d'),w=cv.width,h=cv.height;c.clearRect(0,0,w,h);
+  c.fillStyle=day?'#cfe8f7':'#24324f';c.fillRect(0,0,w,h);
+  c.fillStyle=day?'#ffd34d':'#f4f1e6';c.beginPath();c.arc(day?120:780,40,22,0,7);c.fill();
+  c.fillStyle='#3b8bd0';c.fillRect(0,120,w/2,h-120);c.fillStyle='#b98c55';c.fillRect(w/2,112,w/2,h-112);
+  const seaT=day?18:16, landT=day?28:10;
+  c.fillStyle=day?'#1D1F26':'#f4f1e6';c.font='17px "Do Hyeon"';c.textAlign='center';
+  c.fillText(`바다 ${seaT}℃ (비열 큼 → 천천히 변함)`,w/4,108);c.fillText(`육지 ${landT}℃ (비열 작음 → 빨리 변함)`,w*3/4,100);
+  // wind arrow from cooler (higher pressure) to warmer near ground
+  const from = day? w*0.32 : w*0.68, to = day? w*0.68 : w*0.32; const y=70;
+  c.strokeStyle='#E3614A';c.fillStyle='#E3614A';c.lineWidth=6;c.beginPath();c.moveTo(from,y);c.lineTo(to,y);c.stroke();
+  const dir=Math.sign(to-from);c.beginPath();c.moveTo(to,y);c.lineTo(to-dir*18,y-12);c.lineTo(to-dir*18,y+12);c.fill();
+  c.font='18px "Do Hyeon"';c.fillText(day?'해풍 (바다 → 육지)':'육풍 (육지 → 바다)',w/2,y-16);
+  $('seaTxt').innerHTML= day? '낮: 햇빛을 받으면 비열이 작은 <b>육지가 빨리 데워져</b> 육지 위 공기가 올라가고, 바다 쪽 공기가 육지로 불어와요(해풍).'
+    : '밤: 비열이 작은 <b>육지가 빨리 식어</b> 바다가 더 따뜻해요. 바람이 육지에서 바다로 불어요(육풍).';
+  $('day4').classList.toggle('sel',day);$('night4').classList.toggle('sel',!day);
+}
+$('day4').onclick=()=>{day=true;drawSea()};$('night4').onclick=()=>{day=false;drawSea()};
+
+/* ======================= LOOP ======================= */
+let last=performance.now();
+function loop(now){const dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(current==='t1'){ if(run1){Q1=Math.min(QTOT,Q1+POW[$('pow1').value]*dt); if(Q1>=QTOT){run1=false;$('play1').textContent='↺ 다시 가열'}} drawBeaker(dt); upd1(); draw1(); }
+  if(current==='t2'){ for(let k=0;k<3;k++)step2(dt/3); draw2(); t2acc+=dt; if(t2acc>0.5){hitRate+= (hits/t2acc/(2*((pistonX-X0b)+BOXH))*100 - hitRate)*0.5; hits=0; t2acc=0; $('r2H').textContent=fmt(hitRate,1); $('r2P').textContent=fmt(Pema,1)+' kPa';$('r2V').textContent=fmt(V2,1)+' mL';$('r2T').textContent=Math.round(T2)+' K';draw2g()} }
+  if(current==='t3'){ draw3(dt); }
+  if(current==='t4'&&run4){ t4=Math.min(TMAX4,t4+dt*8); if(t4>=TMAX4){run4=false;$('play4').textContent='↺ 다시'} draw4(); }
+  requestAnimationFrame(loop)}
+setMode2('boyle'); draw1(); upd1(); draw4(); drawSea(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>
