@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>보일 법칙</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&amp;family=Noto+Sans+KR:wght@500;700;900&amp;display=swap" rel="stylesheet">
+  <style>
+html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}
+canvas{display:block;width:100%;height:calc(100 * min(var(--vh, 1vh), 1vh));cursor:pointer}
+#hint{position:fixed;right:8px;bottom:6px;font:12px "Noto Sans KR",sans-serif;color:#9a8f86}
+</style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
+  
+  
+  
+ </head>
+ <body data-template-id="__page-root" class="w-full">
+  <main>
+   <canvas id="cv"></canvas>
+   <div id="hint" data-template-id="hint" class="canva-text">
+    화면을 누르면 멈춤/재생
+   </div>
+  </main>
+  <script>
+const C={cream:'#FFF9F0',coral:'#E3614A',coralL:'#F8D3CA',teal:'#2BBFAE',tealD:'#1E8C80',ink:'#1D1F26',navy:'#35415A',gray:'#8C8C96',blue:'#3D7FD9',yellow:'#FFC94A',paper:'#FFFFFF'};
+const HF='"Do Hyeon","Noto Sans KR",sans-serif', BF='"Noto Sans KR",sans-serif';
+const cv=document.getElementById('cv'),c=cv.getContext('2d');let VW=800,VH=600,sc=1,ox=0,oy=0;
+function fit(){const d=devicePixelRatio||1;cv.width=innerWidth*d;cv.height=innerHeight*d;sc=Math.min(cv.width/VW,cv.height/VH);ox=(cv.width-VW*sc)/2;oy=(cv.height-VH*sc)/2}
+addEventListener('resize',fit);fit();
+let paused=false;cv.onclick=()=>{paused=!paused};
+function T(s,x,y,o={}){c.font=(o.w||700)+' '+(o.s||24)+'px '+(o.f||BF);c.fillStyle=o.c||C.ink;c.textAlign=o.a||'left';c.textBaseline=o.b||'alphabetic';c.fillText(s,x,y)}
+function H(s,x,y,o={}){T(s,x,y,Object.assign({f:HF,w:400},o))}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||2;c.stroke()}}
+function dot(x,y,r,col){c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,7);c.fill()}
+function arrow(x1,y1,x2,y2,col,lw){c.strokeStyle=col;c.fillStyle=col;c.lineWidth=lw||4;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();const a=Math.atan2(y2-y1,x2-x1),L=lw*3.2+6;c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-L*Math.cos(a-0.45),y2-L*Math.sin(a-0.45));c.lineTo(x2-L*Math.cos(a+0.45),y2-L*Math.sin(a+0.45));c.fill()}
+function flame(x,y,s,t){for(let k=0;k<3;k++){c.fillStyle=k?'#FFB13B':C.coral;const hh=s*(1.6-k*0.35)*(0.85+0.15*Math.sin(t*12+x+k));c.beginPath();c.moveTo(x-s*0.55*(1-k*0.25),y);c.quadraticCurveTo(x-s*0.5,y-hh*0.6,x,y-hh);c.quadraticCurveTo(x+s*0.5,y-hh*0.6,x+s*0.55*(1-k*0.25),y);c.fill()}}
+function thermo(x,y,h,frac,label){rr(x-9,y,18,h,9,'#fff','#bdb6ae',2);dot(x,y+h+8,14,C.coral);c.fillStyle=C.coral;c.fillRect(x-4,y+h-(h-6)*Math.max(0,Math.min(1,frac)),8,(h-6)*Math.max(0,Math.min(1,frac))+8);if(label)T(label,x,y-10,{a:'center',s:20,c:C.ink})}
+function speedCol(s){s=Math.max(0,Math.min(1,s));const a=[61,127,217],b=[227,97,74];return `rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*s)).join(',')})`}
+let last=performance.now(),t=0;
+function frame(now){const dt=Math.max(0,Math.min(0.05,(now-last)/1000));last=now;if(!paused)t+=dt;
+ c.setTransform(1,0,0,1,0,0);c.fillStyle=C.cream;c.fillRect(0,0,cv.width,cv.height);c.setTransform(sc,0,0,sc,ox,oy);
+ draw(paused?0:dt,t);if(paused){rr(VW-120,14,106,34,17,'rgba(29,31,38,.7)');T('⏸ 멈춤',VW-67,38,{a:'center',s:18,c:'#fff'})}
+ requestAnimationFrame(frame)}
+
+const N=46,P=[];for(let i=0;i<N;i++){const a=Math.random()*6.28,v=170;P.push({x:80+Math.random()*200,y:150+Math.random()*240,vx:Math.cos(a)*v,vy:Math.sin(a)*v})}
+const pts=[];let lastV=null;
+function draw(dt,t){
+  H('온도가 일정할 때: 부피 ↓ → 압력 ↑',400,46,{a:'center',s:32});
+  const V=40+20*Math.cos(t*0.6); // 20~60 mL
+  const x0=60,y0=140,h=260,len=V*6.2, px=x0+len, Pk=101*50/V;
+  rr(x0,y0,380,h,6,'#fff');
+  c.fillStyle='#f3f0ea';c.fillRect(px,y0,x0+380-px,h);
+  P.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt; if(p.x<x0+9){p.x=x0+9;p.vx=Math.abs(p.vx)} if(p.x>px-9){p.x=px-9;p.vx=-Math.abs(p.vx)} if(p.y<y0+9){p.y=y0+9;p.vy=Math.abs(p.vy)} if(p.y>y0+h-9){p.y=y0+h-9;p.vy=-Math.abs(p.vy)} dot(p.x,p.y,8,C.blue)});
+  c.strokeStyle=C.navy;c.lineWidth=6;c.beginPath();c.moveTo(x0+380,y0);c.lineTo(x0,y0);c.lineTo(x0,y0+h);c.lineTo(x0+380,y0+h);c.stroke();
+  c.fillStyle=C.gray;c.fillRect(px,y0-8,16,h+16);c.fillRect(px+16,y0+h/2-9,470-px,18);
+  rr(70,430,170,70,14,'#fff');T('부피',155,458,{a:'center',s:18,c:C.gray,w:700});H(V.toFixed(0)+' mL',155,492,{a:'center',s:30});
+  rr(260,430,170,70,14,C.coralL);T('압력',345,458,{a:'center',s:18,c:C.coral,w:700});H(Pk.toFixed(0)+' kPa',345,492,{a:'center',s:30,c:C.coral});
+  // graph
+  const gx=490,gy=110,gw=270,gh=300,Xg=v=>gx+(v-10)/55*gw,Yg=p=>gy+gh-p/280*gh;
+  rr(gx-30,gy-20,gw+50,gh+70,12,'#fff');
+  c.strokeStyle=C.navy;c.lineWidth=2;c.beginPath();c.moveTo(gx,gy);c.lineTo(gx,gy+gh);c.lineTo(gx+gw,gy+gh);c.stroke();
+  c.strokeStyle=C.teal;c.lineWidth=4;c.beginPath();for(let v=18;v<=62;v+=1){const y=Yg(101*50/v);v>18?c.lineTo(Xg(v),y):c.moveTo(Xg(v),y)}c.stroke();
+  dot(Xg(V),Yg(Pk),10,C.coral);
+  T('부피 V',gx+gw,gy+gh+30,{a:'right',s:17,c:C.gray,w:700});T('압력 P',gx+6,gy-2,{s:17,c:C.gray,w:700});
+  rr(450,500,330,60,14,C.navy);H('P × V = 일정',615,542,{a:'center',s:30,c:'#fff'});
+  T('(보일 법칙)',255,550,{a:'center',s:20,c:C.gray,w:700});
+}
+requestAnimationFrame(frame);
+</script>
+ 
+</body></html>

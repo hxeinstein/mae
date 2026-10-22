@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>잠열과 상태 변화</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&amp;family=Noto+Sans+KR:wght@500;700;900&amp;display=swap" rel="stylesheet">
+  <style>
+html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}
+canvas{display:block;width:100vw;height:calc(100 * min(var(--vh, 1vh), 1vh));cursor:pointer}
+#hint{position:fixed;right:8px;bottom:6px;font:12px "Noto Sans KR",sans-serif;color:#9a8f86}
+</style>
+  <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  
+  
+  
+ </head>
+ <body data-template-id="__page-root" class="w-full">
+  <main>
+   <canvas id="cv" aria-label="잠열과 상태 변화를 보여 주는 애니메이션. 화면을 누르면 멈추거나 다시 재생됩니다."></canvas>
+   <div id="hint" data-template-id="pause-hint" class="canva-text">
+    화면을 누르면 멈춤/재생
+   </div>
+  </main>
+  <script>
+const C={cream:'#FFF9F0',coral:'#E3614A',coralL:'#F8D3CA',teal:'#2BBFAE',tealD:'#1E8C80',ink:'#1D1F26',navy:'#35415A',gray:'#8C8C96',blue:'#3D7FD9',yellow:'#FFC94A',paper:'#FFFFFF'};
+const HF='"Do Hyeon","Noto Sans KR",sans-serif', BF='"Noto Sans KR",sans-serif';
+const cv=document.getElementById('cv'),c=cv.getContext('2d');let VW=800,VH=600,sc=1,ox=0,oy=0;
+function fit(){const d=devicePixelRatio||1;cv.width=innerWidth*d;cv.height=innerHeight*d;sc=Math.min(cv.width/VW,cv.height/VH);ox=(cv.width-VW*sc)/2;oy=(cv.height-VH*sc)/2}
+addEventListener('resize',fit);fit();
+let paused=false;cv.onclick=()=>{paused=!paused};
+function T(s,x,y,o={}){c.font=(o.w||700)+' '+(o.s||24)+'px '+(o.f||BF);c.fillStyle=o.c||C.ink;c.textAlign=o.a||'left';c.textBaseline=o.b||'alphabetic';c.fillText(s,x,y)}
+function H(s,x,y,o={}){T(s,x,y,Object.assign({f:HF,w:400},o))}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||2;c.stroke()}}
+function dot(x,y,r,col){c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,7);c.fill()}
+function arrow(x1,y1,x2,y2,col,lw){c.strokeStyle=col;c.fillStyle=col;c.lineWidth=lw||4;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();const a=Math.atan2(y2-y1,x2-x1),L=lw*3.2+6;c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-L*Math.cos(a-0.45),y2-L*Math.sin(a-0.45));c.lineTo(x2-L*Math.cos(a+0.45),y2-L*Math.sin(a+0.45));c.fill()}
+function flame(x,y,s,t){for(let k=0;k<3;k++){c.fillStyle=k?'#FFB13B':C.coral;const hh=s*(1.6-k*0.35)*(0.85+0.15*Math.sin(t*12+x+k));c.beginPath();c.moveTo(x-s*0.55*(1-k*0.25),y);c.quadraticCurveTo(x-s*0.5,y-hh*0.6,x,y-hh);c.quadraticCurveTo(x+s*0.5,y-hh*0.6,x+s*0.55*(1-k*0.25),y);c.fill()}}
+function thermo(x,y,h,frac,label){rr(x-9,y,18,h,9,'#fff','#bdb6ae',2);dot(x,y+h+8,14,C.coral);c.fillStyle=C.coral;c.fillRect(x-4,y+h-(h-6)*Math.max(0,Math.min(1,frac)),8,(h-6)*Math.max(0,Math.min(1,frac))+8);if(label)T(label,x,y-10,{a:'center',s:20,c:C.ink})}
+function speedCol(s){s=Math.max(0,Math.min(1,s));const a=[61,127,217],b=[227,97,74];return `rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*s)).join(',')})`}
+let last=performance.now(),t=0;
+function frame(now){const dt=Math.max(0,Math.min(0.05,(now-last)/1000));last=now;if(!paused)t+=dt;
+ c.setTransform(1,0,0,1,0,0);c.fillStyle=C.cream;c.fillRect(0,0,cv.width,cv.height);c.setTransform(sc,0,0,sc,ox,oy);
+ draw(paused?0:dt,t);if(paused){rr(VW-120,14,106,34,17,'rgba(29,31,38,.7)');T('⏸ 멈춤',VW-67,38,{a:'center',s:18,c:'#fff'})}
+ requestAnimationFrame(frame)}
+
+const CYC=16, N=36, P=[];
+for(let i=0;i<N;i++){const gx=i%6,gy=Math.floor(i/6);P.push({hx:95+gx*32,hy:430-gy*32,x:0,y:0,vx:(Math.random()-.5)*80,vy:(Math.random()-.5)*80,ph:Math.random()*6})}
+// 구간 비율(모양): A 1, B 1.4, C 1.6, D 2.2, E 1
+const SEGW=[1,1.4,1.6,2.2,1], ST=[[-5,0],[0,0],[0,100],[100,100],[100,120]], NAME=['얼음','얼음 + 물','물','물 + 수증기','수증기'];
+function at(p){const tot=SEGW.reduce((a,b)=>a+b);let x=p*tot,i=0;while(i<4&&x>SEGW[i]){x-=SEGW[i];i++}const f=Math.min(1,x/SEGW[i]);return{i,f,T:ST[i][0]+(ST[i][1]-ST[i][0])*f}}
+function draw(dt,t){
+  const p=Math.min(1,(t%CYC)/(CYC-1.5)), s=at(p);
+  H('온도가 그대로인데 열은 어디에 쓰일까?',400,46,{a:'center',s:32});
+  // container
+  c.strokeStyle='#8c97a3';c.lineWidth=5;c.beginPath();c.moveTo(70,110);c.lineTo(70,460);c.lineTo(290,460);c.lineTo(290,110);c.stroke();
+  const melt=s.i<1?0:s.i===1?s.f:1, boil=s.i<3?0:s.i===3?s.f:1, sp=Math.sqrt((s.T+273)/273);
+  const nFree=Math.round(melt*N), nGas=Math.round(boil*N);
+  P.forEach((q,i)=>{const free=i>=N-nFree||melt>=1, gas=i<nGas;
+    if(!free){q.ph+=dt*(5+s.T*.4);const a=2+(s.T+5)*0.7;q.x=q.hx+Math.sin(q.ph)*a;q.y=q.hy+Math.cos(q.ph*1.3)*a}
+    else{const y0=gas?118:300,tv=gas?260*sp:80*sp;const v=Math.hypot(q.vx,q.vy)||1,k=1+(tv/v-1)*Math.min(1,dt*3);q.vx*=k;q.vy*=k;if(!gas)q.vy+=80*dt;
+      q.x+=q.vx*dt;q.y+=q.vy*dt;if(q.x<82){q.x=82;q.vx=Math.abs(q.vx)}if(q.x>278){q.x=278;q.vx=-Math.abs(q.vx)}if(q.y<y0){q.y=y0;q.vy=Math.abs(q.vy)}if(q.y>448){q.y=448;q.vy=-Math.abs(q.vy)}}
+    dot(q.x,q.y,11,gas?C.coral:(free?C.blue:'#9cc4ef'))});
+  for(let k=-1;k<=1;k++)flame(180+k*55,500,22,t);
+  H(NAME[s.i],180,545,{a:'center',s:34,c:s.i%2?C.coral:C.navy});
+  // mini curve
+  const gx=340,gy=110,gw=420,gh=300, X=pp=>gx+pp*gw, Y=v=>gy+gh-(v+20)/140*gh;
+  rr(gx-10,gy-10,gw+20,gh+50,12,'#fff');
+  c.strokeStyle='#eee2d6';c.lineWidth=1;[0,100].forEach(v=>{c.beginPath();c.moveTo(gx,Y(v));c.lineTo(gx+gw,Y(v));c.stroke();T(v+'℃',gx-6,Y(v)+6,{a:'right',s:15,c:C.gray,w:500})});
+  c.strokeStyle='#e6ddd2';c.lineWidth=4;c.beginPath();for(let k=0;k<=200;k++){const pp=k/200;const yy=Y(at(pp).T);k?c.lineTo(X(pp),yy):c.moveTo(X(pp),yy)}c.stroke();
+  c.strokeStyle=C.coral;c.lineWidth=6;c.beginPath();for(let k=0;k<=200*p;k++){const pp=k/200;const yy=Y(at(pp).T);k?c.lineTo(X(pp),yy):c.moveTo(X(pp),yy)}c.stroke();
+  dot(X(p),Y(s.T),9,C.coral);
+  T('가열 시간 →',gx+gw,gy+gh+32,{a:'right',s:16,c:C.gray,w:500});
+  T(s.T.toFixed(0)+' ℃',X(p),Y(s.T)-16,{a:'center',s:20,c:C.coral});
+  const flat=s.i===1||s.i===3;
+  rr(330,470,440,100,16,flat?C.coralL:'#fff');
+  if(flat){T('온도는 그대로!',550,508,{a:'center',s:24,c:C.coral,w:900});T('열은 입자 사이의 결합을 끊는 데 쓰여요',550,546,{a:'center',s:20,w:700})}
+  else{T('온도가 올라가요',550,508,{a:'center',s:24,c:C.navy,w:900});T('열이 입자를 더 빠르게 움직이게 해요',550,546,{a:'center',s:20,w:700})}
+}
+requestAnimationFrame(frame);
+</script>
+ 
+</body></html>

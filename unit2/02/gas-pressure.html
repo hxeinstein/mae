@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>기체의 압력</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&amp;family=Noto+Sans+KR:wght@500;700;900&amp;display=swap" rel="stylesheet">
+  <style>
+html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}
+canvas{display:block;width:100vw;height:100vh;cursor:pointer}
+#hint{position:fixed;right:8px;bottom:6px;font:12px "Noto Sans KR",sans-serif;color:#9a8f86}
+</style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
+  
+  
+  
+ </head>
+ <body data-template-id="__page-root" class="w-full">
+  <main>
+   <canvas id="cv" aria-label="움직이는 기체 입자가 용기 벽에 충돌하는 모습을 보여 주는 시각 자료"></canvas>
+   <div id="hint" data-template-id="pause-hint" class="canva-text">
+    화면을 누르면 멈춤/재생
+   </div>
+  </main>
+  <script>
+const C={cream:'#FFF9F0',coral:'#E3614A',coralL:'#F8D3CA',teal:'#2BBFAE',tealD:'#1E8C80',ink:'#1D1F26',navy:'#35415A',gray:'#8C8C96',blue:'#3D7FD9',yellow:'#FFC94A',paper:'#FFFFFF'};
+const HF='"Do Hyeon","Noto Sans KR",sans-serif', BF='"Noto Sans KR",sans-serif';
+const cv=document.getElementById('cv'),c=cv.getContext('2d');let VW=800,VH=600,sc=1,ox=0,oy=0;
+function fit(){const d=devicePixelRatio||1;cv.width=innerWidth*d;cv.height=innerHeight*d;sc=Math.min(cv.width/VW,cv.height/VH);ox=(cv.width-VW*sc)/2;oy=(cv.height-VH*sc)/2}
+addEventListener('resize',fit);fit();
+let paused=false;cv.onclick=()=>{paused=!paused};
+function T(s,x,y,o={}){c.font=(o.w||700)+' '+(o.s||24)+'px '+(o.f||BF);c.fillStyle=o.c||C.ink;c.textAlign=o.a||'left';c.textBaseline=o.b||'alphabetic';c.fillText(s,x,y)}
+function H(s,x,y,o={}){T(s,x,y,Object.assign({f:HF,w:400},o))}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||2;c.stroke()}}
+function dot(x,y,r,col){c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,7);c.fill()}
+function arrow(x1,y1,x2,y2,col,lw){c.strokeStyle=col;c.fillStyle=col;c.lineWidth=lw||4;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();const a=Math.atan2(y2-y1,x2-x1),L=lw*3.2+6;c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-L*Math.cos(a-0.45),y2-L*Math.sin(a-0.45));c.lineTo(x2-L*Math.cos(a+0.45),y2-L*Math.sin(a+0.45));c.fill()}
+function flame(x,y,s,t){for(let k=0;k<3;k++){c.fillStyle=k?'#FFB13B':C.coral;const hh=s*(1.6-k*0.35)*(0.85+0.15*Math.sin(t*12+x+k));c.beginPath();c.moveTo(x-s*0.55*(1-k*0.25),y);c.quadraticCurveTo(x-s*0.5,y-hh*0.6,x,y-hh);c.quadraticCurveTo(x+s*0.5,y-hh*0.6,x+s*0.55*(1-k*0.25),y);c.fill()}}
+function thermo(x,y,h,frac,label){rr(x-9,y,18,h,9,'#fff','#bdb6ae',2);dot(x,y+h+8,14,C.coral);c.fillStyle=C.coral;c.fillRect(x-4,y+h-(h-6)*Math.max(0,Math.min(1,frac)),8,(h-6)*Math.max(0,Math.min(1,frac))+8);if(label)T(label,x,y-10,{a:'center',s:20,c:C.ink})}
+function speedCol(s){s=Math.max(0,Math.min(1,s));const a=[61,127,217],b=[227,97,74];return `rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*s)).join(',')})`}
+let last=performance.now(),t=0;
+function frame(now){const dt=Math.max(0,Math.min(0.05,(now-last)/1000));last=now;if(!paused)t+=dt;
+ c.setTransform(1,0,0,1,0,0);c.fillStyle=C.cream;c.fillRect(0,0,cv.width,cv.height);c.setTransform(sc,0,0,sc,ox,oy);
+ draw(paused?0:dt,t);if(paused){rr(VW-120,14,106,34,17,'rgba(29,31,38,.7)');T('⏸ 멈춤',VW-67,38,{a:'center',s:18,c:'#fff'})}
+ requestAnimationFrame(frame)}
+
+const N=40,P=[];for(let i=0;i<N;i++){const a=Math.random()*6.28,v=150+Math.random()*120;P.push({x:120+Math.random()*360,y:130+Math.random()*300,vx:Math.cos(a)*v,vy:Math.sin(a)*v})}
+const hits=[];let count=0,rate=0,acc=0;
+function draw(dt,t){
+  H('기체의 압력은 어디에서 생길까?',400,48,{a:'center',s:32});
+  const x0=100,y0=110,x1=500,y1=450;
+  rr(x0,y0,x1-x0,y1-y0,6,'#fff');c.strokeStyle=C.navy;c.lineWidth=6;c.strokeRect(x0,y0,x1-x0,y1-y0);
+  P.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;let h=null;
+    if(p.x<x0+10){p.x=x0+10;p.vx*=-1;h=[x0,p.y,-1,0]} if(p.x>x1-10){p.x=x1-10;p.vx*=-1;h=[x1,p.y,1,0]}
+    if(p.y<y0+10){p.y=y0+10;p.vy*=-1;h=[p.x,y0,0,-1]} if(p.y>y1-10){p.y=y1-10;p.vy*=-1;h=[p.x,y1,0,1]}
+    if(h){hits.push({x:h[0],y:h[1],dx:h[2],dy:h[3],life:0.35});count++}
+    dot(p.x,p.y,9,C.blue)});
+  for(let i=hits.length-1;i>=0;i--){const h=hits[i];h.life-=dt;if(h.life<=0){hits.splice(i,1);continue}
+    c.globalAlpha=Math.min(1,h.life*3);arrow(h.x-h.dx*4,h.y-h.dy*4,h.x+h.dx*26,h.y+h.dy*26,C.coral,4);dot(h.x,h.y,6,C.coral);c.globalAlpha=1}
+  acc+=dt;if(acc>1){rate=count/acc;count=0;acc=0}
+  rr(530,120,240,150,16,'#fff');
+  T('1초 동안 벽에',650,165,{a:'center',s:20,w:700});T('부딪힌 횟수',650,192,{a:'center',s:20,w:700});H(Math.round(rate)+' 번',650,248,{a:'center',s:44,c:C.coral});
+  rr(530,290,240,170,16,C.coralL);
+  T('압력',650,330,{a:'center',s:26,c:C.coral,w:900});
+  T('기체 입자가 벽에',650,368,{a:'center',s:19,w:700});T('충돌하면서 단위 면적에',650,396,{a:'center',s:19,w:700});T('작용하는 힘',650,424,{a:'center',s:19,w:700});
+  T('P = F / A',300,500,{a:'center',s:34,c:C.navy,w:900,f:HF});
+}
+requestAnimationFrame(frame);
+</script>
+ 
+</body></html>
