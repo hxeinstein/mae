@@ -1,0 +1,65 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>열역학 제1법칙</title>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}
+</style></head><body><canvas id="cv"></canvas>
+<script>
+const VW=800,VH=600;
+const cv=document.getElementById('cv');cv.width=VW*2;cv.height=VH*2;
+const c=cv.getContext('2d');c.scale(2,2);
+const C={bg:'#FFF9F0',coral:'#E3614A',navy:'#35415A',sky:'#3E8FC9',gold:'#F2A93B',gray:'#9AA3B2',light:'#F3E6D8',purple:'#7B5EA7',green:'#3A9D6B'};
+const F="'Do Hyeon',sans-serif";
+function txt(s,x,y,size,col,align){c.font=size+'px '+F;c.fillStyle=col||C.navy;c.textAlign=align||'center';c.textBaseline='middle';c.fillText(s,x,y);}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.lineWidth=lw||3;c.strokeStyle=stroke;c.stroke();}}
+function arrow(x1,y1,x2,y2,col,lw){c.strokeStyle=col;c.fillStyle=col;c.lineWidth=lw||5;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();const a=Math.atan2(y2-y1,x2-x1),h=lw*3+6;c.beginPath();c.moveTo(x2+Math.cos(a)*4,y2+Math.sin(a)*4);c.lineTo(x2-h*Math.cos(a-0.45),y2-h*Math.sin(a-0.45));c.lineTo(x2-h*Math.cos(a+0.45),y2-h*Math.sin(a+0.45));c.closePath();c.fill();}
+function flame(x,y,s,t){for(let i=0;i<3;i++){const fx=x+(i-1)*s*0.9,fh=s*(1.4+0.25*Math.sin(t*9+i*2));c.fillStyle=C.coral;c.beginPath();c.moveTo(fx-s*0.4,y);c.quadraticCurveTo(fx-s*0.45,y-fh*0.6,fx,y-fh);c.quadraticCurveTo(fx+s*0.45,y-fh*0.6,fx+s*0.4,y);c.fill();c.fillStyle=C.gold;c.beginPath();c.moveTo(fx-s*0.2,y);c.quadraticCurveTo(fx-s*0.2,y-fh*0.35,fx,y-fh*0.55);c.quadraticCurveTo(fx+s*0.2,y-fh*0.35,fx+s*0.2,y);c.fill();}}
+let paused=false,t=0,last=performance.now();
+cv.addEventListener('click',()=>{paused=!paused;});
+function loop(now){let dt=Math.min(0.05,Math.max(0,(now-last)/1000));last=now;if(!paused){t+=dt;}c.clearRect(0,0,VW,VH);c.fillStyle=C.bg;c.fillRect(0,0,VW,VH);draw(paused?0:dt);if(paused){rr(VW-120,12,108,34,17,'rgba(53,65,90,0.85)');txt('일시 정지',VW-66,30,20,'#fff');}requestAnimationFrame(loop);}
+
+const ps=[];for(let i=0;i<20;i++)ps.push({x:Math.random(),y:Math.random(),a:Math.random()*6.283});
+function draw(dt){
+  const cyc=9,ph=(t%cyc)/cyc;
+  const k=ph<0.75? ph/0.75 : 1-(ph-0.75)/0.25; // 0→1 가열, 이후 원상태로 되돌림(리셋)
+  const heating=ph<0.75;
+  txt('열역학 제1법칙   Q = ΔU + W',400,40,36,C.navy);
+  // 실린더
+  const cx=110,cw=260,cb=470,h0=170,hmax=250;
+  const h=h0+(hmax-h0)*k, top=cb-h;
+  c.fillStyle='#fff';c.fillRect(cx,top,cw,h);
+  c.strokeStyle=C.navy;c.lineWidth=5;c.beginPath();c.moveTo(cx,cb-hmax-40);c.lineTo(cx,cb);c.lineTo(cx+cw,cb);c.lineTo(cx+cw,cb-hmax-40);c.stroke();
+  // 피스톤
+  rr(cx+4,top-26,cw-8,26,4,'#8FA7BF',C.navy,3);
+  c.fillStyle=C.navy;c.fillRect(cx+cw/2-8,top-80,16,54);
+  // 입자
+  const sp=60+100*k, col=k>0.5?C.coral:C.sky;
+  for(const p of ps){p.x+=Math.cos(p.a)*sp*dt/cw;p.y+=Math.sin(p.a)*sp*dt/h;
+    if(p.x<0.05||p.x>0.95){p.a=Math.PI-p.a;p.x=Math.min(0.95,Math.max(0.05,p.x));}
+    if(p.y<0.06||p.y>0.94){p.a=-p.a;p.y=Math.min(0.94,Math.max(0.06,p.y));}
+    c.fillStyle=col;c.beginPath();c.arc(cx+p.x*cw,top+p.y*h,8,0,6.283);c.fill();}
+  // 불꽃 + Q 화살표
+  if(heating){flame(cx+cw/2,cb+60,22,t);arrow(cx+cw/2,cb+40,cx+cw/2,cb+8,C.coral,6);}
+  txt('Q',cx+cw/2+60,cb+35,32,C.coral);
+  if(heating){arrow(cx+cw/2,top-90,cx+cw/2,top-130,C.green,6);}
+  txt('W',cx+cw/2+40,top-115,30,C.green);
+  // 에너지 막대
+  const bx=470,bw=280;
+  txt('흡수한 열 Q',bx,120,26,C.coral,'left');
+  rr(bx,140,bw,46,10,C.light);rr(bx,140,bw*k,46,10,C.coral);
+  const fU=0.6,fW=0.4;
+  txt('내부 에너지 증가 ΔU (온도 ↑)',bx,240,24,C.purple,'left');
+  rr(bx,260,bw,40,10,C.light);rr(bx,260,bw*fU*k,40,10,C.purple);
+  txt('외부에 한 일 W (부피 ↑)',bx,340,24,C.green,'left');
+  rr(bx,360,bw,40,10,C.light);rr(bx,360,bw*fW*k,40,10,C.green);
+  txt('ΔU + W = Q',bx+bw/2,440,30,C.navy);
+  rr(30,530,740,52,12,'#fff',C.light,2);
+  txt('가해진 열 = 내부 에너지 증가 + 외부에 한 일',400,556,26,C.navy);
+  txt('(비율은 예시)',bx+bw,470,18,C.gray,'right');
+}
+
+document.fonts&&document.fonts.load("20px 'Do Hyeon'").finally(()=>requestAnimationFrame(loop));
+if(!document.fonts)requestAnimationFrame(loop);
+</script></body></html>

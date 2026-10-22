@@ -1,0 +1,61 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>등압 과정</title>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}
+</style></head><body><canvas id="cv"></canvas>
+<script>
+const VW=800,VH=600;
+const cv=document.getElementById('cv');cv.width=VW*2;cv.height=VH*2;
+const c=cv.getContext('2d');c.scale(2,2);
+const C={bg:'#FFF9F0',coral:'#E3614A',navy:'#35415A',sky:'#3E8FC9',gold:'#F2A93B',gray:'#9AA3B2',light:'#F3E6D8',purple:'#7B5EA7',green:'#3A9D6B'};
+const F="'Do Hyeon',sans-serif";
+function txt(s,x,y,size,col,align){c.font=size+'px '+F;c.fillStyle=col||C.navy;c.textAlign=align||'center';c.textBaseline='middle';c.fillText(s,x,y);}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.lineWidth=lw||3;c.strokeStyle=stroke;c.stroke();}}
+function arrow(x1,y1,x2,y2,col,lw){c.strokeStyle=col;c.fillStyle=col;c.lineWidth=lw||5;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();const a=Math.atan2(y2-y1,x2-x1),h=lw*3+6;c.beginPath();c.moveTo(x2+Math.cos(a)*4,y2+Math.sin(a)*4);c.lineTo(x2-h*Math.cos(a-0.45),y2-h*Math.sin(a-0.45));c.lineTo(x2-h*Math.cos(a+0.45),y2-h*Math.sin(a+0.45));c.closePath();c.fill();}
+function flame(x,y,s,t){for(let i=0;i<3;i++){const fx=x+(i-1)*s*0.9,fh=s*(1.4+0.25*Math.sin(t*9+i*2));c.fillStyle=C.coral;c.beginPath();c.moveTo(fx-s*0.4,y);c.quadraticCurveTo(fx-s*0.45,y-fh*0.6,fx,y-fh);c.quadraticCurveTo(fx+s*0.45,y-fh*0.6,fx+s*0.4,y);c.fill();c.fillStyle=C.gold;c.beginPath();c.moveTo(fx-s*0.2,y);c.quadraticCurveTo(fx-s*0.2,y-fh*0.35,fx,y-fh*0.55);c.quadraticCurveTo(fx+s*0.2,y-fh*0.35,fx+s*0.2,y);c.fill();}}
+let paused=false,t=0,last=performance.now();
+cv.addEventListener('click',()=>{paused=!paused;});
+function loop(now){let dt=Math.min(0.05,Math.max(0,(now-last)/1000));last=now;if(!paused){t+=dt;}c.clearRect(0,0,VW,VH);c.fillStyle=C.bg;c.fillRect(0,0,VW,VH);draw(paused?0:dt);if(paused){rr(VW-120,12,108,34,17,'rgba(53,65,90,0.85)');txt('일시 정지',VW-66,30,20,'#fff');}requestAnimationFrame(loop);}
+
+const ps=[];for(let i=0;i<18;i++)ps.push({x:Math.random(),y:Math.random(),a:Math.random()*6.283});
+function cyl(cx,cb,cw,h,hmax,lock,k,sp,col,dt){
+  const top=cb-h;c.fillStyle='#fff';c.fillRect(cx,top,cw,h);
+  c.strokeStyle=C.navy;c.lineWidth=5;c.beginPath();c.moveTo(cx,cb-hmax-30);c.lineTo(cx,cb);c.lineTo(cx+cw,cb);c.lineTo(cx+cw,cb-hmax-30);c.stroke();
+  rr(cx+4,top-24,cw-8,24,4,'#8FA7BF',C.navy,3);
+  if(lock){c.fillStyle=C.navy;c.fillRect(cx-14,top-30,18,10);c.fillRect(cx+cw-4,top-30,18,10);txt('고정',cx+cw/2,top-45,22,C.navy);}
+  for(const p of ps){p.x+=Math.cos(p.a)*sp*dt/cw;p.y+=Math.sin(p.a)*sp*dt/h;
+    if(p.x<0.05||p.x>0.95){p.a=Math.PI-p.a;p.x=Math.min(0.95,Math.max(0.05,p.x));}
+    if(p.y<0.06||p.y>0.94){p.a=-p.a;p.y=Math.min(0.94,Math.max(0.06,p.y));}
+    c.fillStyle=col;c.beginPath();c.arc(cx+p.x*cw,top+p.y*h,7,0,6.283);c.fill();}
+  return top;
+}
+function axes(gx,gy,gw,gh){c.strokeStyle=C.navy;c.lineWidth=3;arrow(gx,gy+gh,gx+gw+10,gy+gh,C.navy,3);arrow(gx,gy+gh,gx,gy-10,C.navy,3);
+  txt('부피 V',gx+gw-10,gy+gh+26,22,C.navy);txt('압력 P',gx+4,gy-26,22,C.navy,'left');}
+function tri(lbl,val,x,y,col){rr(x,y,230,40,10,'#fff',col,3);txt(lbl+'  '+val,x+115,y+20,24,col);}
+
+function draw(dt){
+  const cyc=8,ph=(t%cyc)/cyc,k=ph<0.8?ph/0.8:1;
+  txt('등압 과정 : 압력이 일정',400,36,34,C.navy);
+  const h=150+100*k;
+  const top=cyl(60,450,220,h,250,false,k,60+90*k,k>0.5?C.coral:C.sky,dt);
+  // 추(일정한 압력)
+  rr(60+70,top-24-50,80,50,6,C.gray,C.navy,3);txt('추',60+110,top-49,22,'#fff');
+  if(ph<0.8)flame(170,492,16,t);
+  // P-V 그래프
+  const gx=380,gy=110,gw=370,gh=280;axes(gx,gy,gw,gh);
+  const V1=gx+90,V2=gx+300,Py=gy+120,Vk=V1+(V2-V1)*k;
+  c.fillStyle='rgba(227,97,74,0.25)';c.fillRect(V1,Py,Vk-V1,gy+gh-Py);
+  c.strokeStyle=C.coral;c.lineWidth=5;c.beginPath();c.moveTo(V1,Py);c.lineTo(Vk,Py);c.stroke();
+  c.fillStyle=C.navy;c.beginPath();c.arc(Vk,Py,8,0,6.283);c.fill();
+  txt('W = PΔV (넓이)',(V1+V2)/2,Py+80,26,C.coral);
+  tri('Q','> 0 (흡수)',60,500+0,C.coral);
+  tri('ΔU','> 0 (온도 ↑)',300,500,C.purple);tri('W','> 0 (부피 ↑)',540,500,C.green);
+  txt('Q = ΔU + W',565,440,30,C.navy);
+}
+
+document.fonts&&document.fonts.load("20px 'Do Hyeon'").finally(()=>requestAnimationFrame(loop));
+if(!document.fonts)requestAnimationFrame(loop);
+</script></body></html>

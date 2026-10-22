@@ -1,0 +1,50 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>이상 기체의 내부 에너지</title>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}
+</style></head><body><canvas id="cv"></canvas>
+<script>
+const VW=800,VH=600;
+const cv=document.getElementById('cv');cv.width=VW*2;cv.height=VH*2;
+const c=cv.getContext('2d');c.scale(2,2);
+const C={bg:'#FFF9F0',coral:'#E3614A',navy:'#35415A',sky:'#3E8FC9',gold:'#F2A93B',gray:'#9AA3B2',light:'#F3E6D8',purple:'#7B5EA7',green:'#3A9D6B'};
+const F="'Do Hyeon',sans-serif";
+function txt(s,x,y,size,col,align){c.font=size+'px '+F;c.fillStyle=col||C.navy;c.textAlign=align||'center';c.textBaseline='middle';c.fillText(s,x,y);}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.lineWidth=lw||3;c.strokeStyle=stroke;c.stroke();}}
+function arrow(x1,y1,x2,y2,col,lw){c.strokeStyle=col;c.fillStyle=col;c.lineWidth=lw||5;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();const a=Math.atan2(y2-y1,x2-x1),h=lw*3+6;c.beginPath();c.moveTo(x2+Math.cos(a)*4,y2+Math.sin(a)*4);c.lineTo(x2-h*Math.cos(a-0.45),y2-h*Math.sin(a-0.45));c.lineTo(x2-h*Math.cos(a+0.45),y2-h*Math.sin(a+0.45));c.closePath();c.fill();}
+function flame(x,y,s,t){for(let i=0;i<3;i++){const fx=x+(i-1)*s*0.9,fh=s*(1.4+0.25*Math.sin(t*9+i*2));c.fillStyle=C.coral;c.beginPath();c.moveTo(fx-s*0.4,y);c.quadraticCurveTo(fx-s*0.45,y-fh*0.6,fx,y-fh);c.quadraticCurveTo(fx+s*0.45,y-fh*0.6,fx+s*0.4,y);c.fill();c.fillStyle=C.gold;c.beginPath();c.moveTo(fx-s*0.2,y);c.quadraticCurveTo(fx-s*0.2,y-fh*0.35,fx,y-fh*0.55);c.quadraticCurveTo(fx+s*0.2,y-fh*0.35,fx+s*0.2,y);c.fill();}}
+let paused=false,t=0,last=performance.now();
+cv.addEventListener('click',()=>{paused=!paused;});
+function loop(now){let dt=Math.min(0.05,Math.max(0,(now-last)/1000));last=now;if(!paused){t+=dt;}c.clearRect(0,0,VW,VH);c.fillStyle=C.bg;c.fillRect(0,0,VW,VH);draw(paused?0:dt);if(paused){rr(VW-120,12,108,34,17,'rgba(53,65,90,0.85)');txt('일시 정지',VW-66,30,20,'#fff');}requestAnimationFrame(loop);}
+
+function mk(n){const a=[];for(let i=0;i<n;i++)a.push({x:Math.random(),y:Math.random(),a:Math.random()*6.283});return a;}
+const L=mk(18),R=mk(18);
+function box(x,y,w,h,ps,speed,col,dt){
+  rr(x,y,w,h,14,'#fff',C.navy,4);
+  for(const p of ps){p.x+=Math.cos(p.a)*speed*dt/w;p.y+=Math.sin(p.a)*speed*dt/h;
+    if(p.x<0.04||p.x>0.96){p.a=Math.PI-p.a;p.x=Math.min(0.96,Math.max(0.04,p.x));}
+    if(p.y<0.05||p.y>0.95){p.a=-p.a;p.y=Math.min(0.95,Math.max(0.05,p.y));}
+    const px=x+p.x*w,py=y+p.y*h;
+    c.strokeStyle=col;c.globalAlpha=0.35;c.lineWidth=3;c.beginPath();c.moveTo(px,py);c.lineTo(px-Math.cos(p.a)*speed*0.12,py-Math.sin(p.a)*speed*0.12);c.stroke();c.globalAlpha=1;
+    c.fillStyle=col;c.beginPath();c.arc(px,py,9,0,6.283);c.fill();}
+}
+function draw(dt){
+  txt('온도가 높을수록 내부 에너지가 크다',400,40,34,C.navy);
+  const s1=90,s2=90*Math.SQRT2; // 평균 운동 에너지 ∝ T → 속력 ∝ √T
+  box(50,90,320,300,L,s1,C.sky,dt);
+  box(430,90,320,300,R,s2,C.coral,dt);
+  txt('200 K',210,420,34,C.sky);txt('400 K',590,420,34,C.coral);
+  // 막대: 내부 에너지 (상대값)
+  const base=520;
+  txt('내부 에너지',400,base-70,24,C.navy);
+  rr(80,base-40,130,40,8,C.sky);txt('U = 1',230,base-20,26,C.sky,'left');
+  rr(460,base-40,260,40,8,C.coral);txt('U = 2',705,base-20,26,'#fff','right');
+  txt('분자 수가 같으면  U ∝ T   →   200 K : 400 K = 1 : 2',400,570,26,C.navy);
+}
+
+document.fonts&&document.fonts.load("20px 'Do Hyeon'").finally(()=>requestAnimationFrame(loop));
+if(!document.fonts)requestAnimationFrame(loop);
+</script></body></html>
