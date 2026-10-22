@@ -489,6 +489,7 @@ function loop(now){const dt=Math.min(0.05,(now-last)/1000);last=now;
   if(current==='t4'&&run4){ t4=Math.min(TMAX4,t4+dt*8); if(t4>=TMAX4){run4=false;$('play4').textContent='↺ 다시'} draw4(); }
   requestAnimationFrame(loop)}
 setMode2('boyle'); draw1(); upd1(); draw4(); drawSea(); requestAnimationFrame(loop);
+(function(){var t=new URLSearchParams(location.search).get('t');if(t){var b=document.querySelector('.tab[data-t="'+t+'"]');if(b)b.click();}})();
 </script>
 </body>
 </html>
