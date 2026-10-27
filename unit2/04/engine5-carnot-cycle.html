@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}</style>
+</head><body><canvas id="cv"></canvas>
+<script>
+const VW=800,VH=600;const cv=document.getElementById('cv');cv.width=VW*2;cv.height=VH*2;const c=cv.getContext('2d');c.scale(2,2);
+const CR='#E3614A',NV='#35415A',BG='#FFF9F0',TX='#1F1F1F',HOT='#E3614A',COLD='#4A7BD0',GOLD='#F2A93B';
+const F=(s)=>s+"px 'Do Hyeon', 'Malgun Gothic', sans-serif";
+let paused=false,t=0,last=performance.now();
+cv.addEventListener('click',()=>{paused=!paused});
+function txt(s,x,y,size,col,al){c.font=F(size);c.fillStyle=col||TX;c.textAlign=al||'center';c.textBaseline='middle';c.fillText(s,x,y)}
+// subscript text: parts [[text,'n'|'s']]
+function stxt(parts,x,y,size,col,al){c.font=F(size);let w=0;for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);w+=c.measureText(p).width}let sx=al=='left'?x:al=='right'?x-w:x-w/2;c.fillStyle=col||TX;c.textAlign='left';c.textBaseline='middle';for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);c.fillText(p,sx,m=='s'?y+size*0.28:y);sx+=c.measureText(p).width}}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||2;c.stroke()}}
+function arrow(x1,y1,x2,y2,w,col){const a=Math.atan2(y2-y1,x2-x1),h=Math.max(w*1.8,14);c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;c.lineCap='butt';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2-Math.cos(a)*h*0.9,y2-Math.sin(a)*h*0.9);c.stroke();c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-Math.cos(a)*h-Math.sin(a)*h*0.6,y2-Math.sin(a)*h+Math.cos(a)*h*0.6);c.lineTo(x2-Math.cos(a)*h+Math.sin(a)*h*0.6,y2-Math.sin(a)*h-Math.cos(a)*h*0.6);c.closePath();c.fill()}
+function hint(){txt(paused?'▶ 클릭하면 재생':'❚❚ 클릭하면 멈춤',VW-14,VH-14,15,'#9A8F86','right')}
+function loop(now){let dt=Math.max(0,Math.min((now-last)/1000,0.05));last=now;if(!paused)t+=dt;c.fillStyle=BG;c.fillRect(0,0,VW,VH);draw(t);hint();requestAnimationFrame(loop)}
+const T1=600,T2=360,g=5/3,VA=1,VB=3.0;const r=Math.pow(T1/T2,1/(g-1));const VC=VB*r,VD=VA*r;
+const ox=90,oy=520,sx=(v)=>ox+(v-0.5)*70,sy=(p)=>oy-400*Math.pow(p/600,0.7);
+const nR=1;const Pi=(T,V)=>T/V;const Pa=(V,V0,P0)=>P0*Math.pow(V0/V,g);
+const PA=Pi(T1,VA),PB=Pi(T1,VB),PC=Pi(T2,VC),PD=Pi(T2,VD);
+const ST=[['등온 팽창',HOT,'고온의 열원에서 열 Q₁을 흡수한다.'],['단열 팽창',NV,'열 출입 없이 팽창하며 온도가 T₁→T₂로 내려간다.'],['등온 압축',COLD,'저온의 열원으로 열 Q₂를 방출한다.'],['단열 압축',NV,'열 출입 없이 압축되며 온도가 T₂→T₁로 올라간다.']];
+function pt(k,f){if(k==0){const v=VA*Math.pow(VB/VA,f);return[v,Pi(T1,v)]}if(k==1){const v=VB*Math.pow(VC/VB,f);return[v,Pa(v,VB,PB)]}if(k==2){const v=VC*Math.pow(VD/VC,f);return[v,Pi(T2,v)]}const v=VD*Math.pow(VA/VD,f);return[v,Pa(v,VD,PD)]}
+function draw(t){
+ const D=2.2,k=Math.floor(t/D)%4,f=(t%D)/D;
+ txt('카르노 기관의 순환 과정',VW/2,36,32,TX);
+ arrow(ox,oy,ox,70,2.5,TX);arrow(ox,oy,ox+470,oy,2.5,TX);txt('압력',ox-30,80,20,TX);txt('부피',ox+470,oy+24,20,TX);txt('0',ox-14,oy+14,18,TX);
+ // area
+ c.beginPath();for(let kk=0;kk<4;kk++)for(let i=0;i<=40;i++){const[v,p]=pt(kk,i/40);(kk||i)?c.lineTo(sx(v),sy(p)):c.moveTo(sx(v),sy(p))}c.closePath();c.fillStyle='rgba(242,169,59,0.22)';c.fill();
+ txt('W',sx(3.2),sy(150),30,'#C07A12');txt('(모양을 과장해 그림)',ox+60,96,15,'#9A8F86','left');
+ for(let kk=0;kk<4;kk++){c.beginPath();for(let i=0;i<=40;i++){const[v,p]=pt(kk,i/40);i?c.lineTo(sx(v),sy(p)):c.moveTo(sx(v),sy(p))}c.strokeStyle=kk==k?ST[kk][1]:'#B9AEA3';c.lineWidth=kk==k?6:3;c.stroke()}
+ {const a=pt(0,0.75),b=pt(2,0.3);stxt([['T','n'],['1','s']],sx(a[0])+14,sy(a[1])-18,22,HOT,'left');stxt([['T','n'],['2','s']],sx(b[0])+4,sy(b[1])-22,22,COLD,'left');}
+ for(const[v,p]of[[VA,PA],[VB,PB],[VC,PC],[VD,PD]]){c.beginPath();c.arc(sx(v),sy(p),5,0,6.28);c.fillStyle=TX;c.fill()}
+ // heat arrows
+ const mB=pt(0,0.5),mD=pt(2,0.5);
+ arrow(sx(mB[0])+10,sy(mB[1])-80,sx(mB[0])+10,sy(mB[1])-14,k==0?6:3,k==0?HOT:'#E8B9AE');stxt([['Q','n'],['1','s']],sx(mB[0])+36,sy(mB[1])-66,24,HOT,'left');
+ arrow(sx(mD[0]),sy(mD[1])+12,sx(mD[0]),sy(mD[1])+70,k==2?6:3,k==2?COLD:'#B7C9EA');stxt([['Q','n'],['2','s']],sx(mD[0])+16,sy(mD[1])+62,24,COLD,'left');
+ const[v,p]=pt(k,f);c.beginPath();c.arc(sx(v),sy(p),11,0,6.28);c.fillStyle=ST[k][1];c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
+ // panel
+ for(let i=0;i<4;i++){const y=100+i*78,on=i==k;rr(580,y,200,66,14,on?ST[i][1]:'#fff',on?null:'#D9D0C6',2);txt(ST[i][0],680,y+33,24,on?'#fff':TX)}
+ txt(ST[k][2],330,VH-22,18,TX);
+ rr(580,420,200,70,14,'#fff',CR,2);
+ txt('e = 1 − ',640,455,24,TX);stxt([['T','n'],['2','s']],708,440,22,TX);c.strokeStyle=TX;c.lineWidth=2;c.beginPath();c.moveTo(692,455);c.lineTo(726,455);c.stroke();stxt([['T','n'],['1','s']],708,472,22,TX);
+}
+requestAnimationFrame(loop);
+</script></body></html>

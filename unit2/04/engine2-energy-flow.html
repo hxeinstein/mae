@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}</style>
+</head><body><canvas id="cv"></canvas>
+<script>
+const VW=800,VH=600;const cv=document.getElementById('cv');cv.width=VW*2;cv.height=VH*2;const c=cv.getContext('2d');c.scale(2,2);
+const CR='#E3614A',NV='#35415A',BG='#FFF9F0',TX='#1F1F1F',HOT='#E3614A',COLD='#4A7BD0',GOLD='#F2A93B';
+const F=(s)=>s+"px 'Do Hyeon', 'Malgun Gothic', sans-serif";
+let paused=false,t=0,last=performance.now();
+cv.addEventListener('click',()=>{paused=!paused});
+function txt(s,x,y,size,col,al){c.font=F(size);c.fillStyle=col||TX;c.textAlign=al||'center';c.textBaseline='middle';c.fillText(s,x,y)}
+// subscript text: parts [[text,'n'|'s']]
+function stxt(parts,x,y,size,col,al){c.font=F(size);let w=0;for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);w+=c.measureText(p).width}let sx=al=='left'?x:al=='right'?x-w:x-w/2;c.fillStyle=col||TX;c.textAlign='left';c.textBaseline='middle';for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);c.fillText(p,sx,m=='s'?y+size*0.28:y);sx+=c.measureText(p).width}}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||2;c.stroke()}}
+function arrow(x1,y1,x2,y2,w,col){const a=Math.atan2(y2-y1,x2-x1),h=Math.max(w*1.8,14);c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;c.lineCap='butt';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2-Math.cos(a)*h*0.9,y2-Math.sin(a)*h*0.9);c.stroke();c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-Math.cos(a)*h-Math.sin(a)*h*0.6,y2-Math.sin(a)*h+Math.cos(a)*h*0.6);c.lineTo(x2-Math.cos(a)*h+Math.sin(a)*h*0.6,y2-Math.sin(a)*h-Math.cos(a)*h*0.6);c.closePath();c.fill()}
+function hint(){txt(paused?'▶ 클릭하면 재생':'❚❚ 클릭하면 멈춤',VW-14,VH-14,15,'#9A8F86','right')}
+function loop(now){let dt=Math.max(0,Math.min((now-last)/1000,0.05));last=now;if(!paused)t+=dt;c.fillStyle=BG;c.fillRect(0,0,VW,VH);draw(t);hint();requestAnimationFrame(loop)}
+const SETS=[[100,30,70],[100,40,60],[100,25,75]];
+const parts=[];for(let i=0;i<40;i++)parts.push(Math.random());
+function draw(t){
+ const n=Math.floor(t/5)%SETS.length;const [QH,W,QL]=SETS[n];
+ txt('열기관의 에너지 흐름',VW/2,36,32,TX);
+ // reservoirs
+ rr(250,70,300,70,14,HOT);txt('고온의 열원',400,105,28,'#fff');
+ rr(250,470,300,70,14,COLD);txt('저온의 열원',400,505,28,'#fff');
+ // engine
+ const ex=400,ey=305;
+ c.beginPath();c.arc(ex,ey,70,0,6.28);c.fillStyle='#D9D4CE';c.fill();c.strokeStyle=NV;c.lineWidth=4;c.stroke();
+ txt('열기관',ex,ey-12,28,NV);txt('ΔU = 0',ex,ey+22,20,'#6E655D');
+ const s=0.42; // px per J
+ const wH=QH*s,wW=W*s,wL=QL*s;
+ // QH band
+ c.fillStyle=HOT;c.globalAlpha=0.85;c.fillRect(ex-wH/2,140,wH,ey-70-140+10);c.globalAlpha=1;
+ // QL band
+ c.fillStyle=COLD;c.globalAlpha=0.85;c.fillRect(ex-wL/2,ey+60,wL,470-(ey+60));c.globalAlpha=1;
+ // W band to right
+ c.fillStyle=GOLD;c.globalAlpha=0.9;c.fillRect(ex+60,ey-wW/2,170,wW);c.globalAlpha=1;
+ c.beginPath();c.moveTo(ex+230,ey-wW/2-14);c.lineTo(ex+265,ey);c.lineTo(ex+230,ey+wW/2+14);c.closePath();c.fillStyle=GOLD;c.fill();
+ // flowing dots
+ c.fillStyle='#fff';
+ for(const p of parts){const ph=(t*0.6+p)%1;
+  c.globalAlpha=0.8;c.beginPath();c.arc(ex+(p-0.5)*wH*0.8,140+ph*(ey-70-140),3,0,6.28);c.fill();
+  c.beginPath();c.arc(ex+(p-0.5)*wL*0.8,ey+70+ph*(470-ey-70),3,0,6.28);c.fill();
+  c.beginPath();c.arc(ex+70+ph*190,ey+(p-0.5)*wW*0.8,3,0,6.28);c.fill();c.globalAlpha=1}
+ // labels
+ stxt([['Q','n'],['H','s'],[' = '+QH+' J','n']],ex-wH/2-16,200,28,HOT,'right');
+ stxt([['Q','n'],['L','s'],[' = '+QL+' J','n']],ex-wL/2-16,420,28,COLD,'right');
+ stxt([['W = '+W+' J','n']],ex+150,ey-wW/2-26,28,'#C07A12','center');
+ // equation box
+ rr(560,160,220,90,16,'#fff',NV,2);
+ stxt([['Q','n'],['H','s'],[' = W + Q','n'],['L','s']],670,190,28,TX);
+ stxt([[QH+' = '+W+' + '+QL,'n']],670,226,24,'#6E655D');
+}
+requestAnimationFrame(loop);
+</script></body></html>

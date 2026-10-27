@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}</style>
+</head><body><canvas id="cv"></canvas>
+<script>
+const VW=800,VH=600;const cv=document.getElementById('cv');cv.width=VW*2;cv.height=VH*2;const c=cv.getContext('2d');c.scale(2,2);
+const CR='#E3614A',NV='#35415A',BG='#FFF9F0',TX='#1F1F1F',HOT='#E3614A',COLD='#4A7BD0',GOLD='#F2A93B';
+const F=(s)=>s+"px 'Do Hyeon', 'Malgun Gothic', sans-serif";
+let paused=false,t=0,last=performance.now();
+cv.addEventListener('click',()=>{paused=!paused});
+function txt(s,x,y,size,col,al){c.font=F(size);c.fillStyle=col||TX;c.textAlign=al||'center';c.textBaseline='middle';c.fillText(s,x,y)}
+// subscript text: parts [[text,'n'|'s']]
+function stxt(parts,x,y,size,col,al){c.font=F(size);let w=0;for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);w+=c.measureText(p).width}let sx=al=='left'?x:al=='right'?x-w:x-w/2;c.fillStyle=col||TX;c.textAlign='left';c.textBaseline='middle';for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);c.fillText(p,sx,m=='s'?y+size*0.28:y);sx+=c.measureText(p).width}}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||2;c.stroke()}}
+function arrow(x1,y1,x2,y2,w,col){const a=Math.atan2(y2-y1,x2-x1),h=Math.max(w*1.8,14);c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;c.lineCap='butt';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2-Math.cos(a)*h*0.9,y2-Math.sin(a)*h*0.9);c.stroke();c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-Math.cos(a)*h-Math.sin(a)*h*0.6,y2-Math.sin(a)*h+Math.cos(a)*h*0.6);c.lineTo(x2-Math.cos(a)*h+Math.sin(a)*h*0.6,y2-Math.sin(a)*h-Math.cos(a)*h*0.6);c.closePath();c.fill()}
+function hint(){txt(paused?'▶ 클릭하면 재생':'❚❚ 클릭하면 멈춤',VW-14,VH-14,15,'#9A8F86','right')}
+function loop(now){let dt=Math.max(0,Math.min((now-last)/1000,0.05));last=now;if(!paused)t+=dt;c.fillStyle=BG;c.fillRect(0,0,VW,VH);draw(t);hint();requestAnimationFrame(loop)}
+const ST=[['흡입','흡입 밸브가 열리고, 공기와 연료의','혼합 기체가 실린더로 들어온다.',COLD],
+['압축','두 밸브가 닫히고, 피스톤이 올라가며','혼합 기체를 압축한다.',NV],
+['폭발(팽창)','점화해 연소시킨 고온·고압의 기체가','피스톤을 밀어 일(W)을 한다.',HOT],
+['배기','배기 밸브가 열리고, 연소된 기체가','밖으로 빠져나간다.','#8A8A8A']];
+const P=1.6; // seconds per stroke
+const parts=[];for(let i=0;i<60;i++)parts.push([Math.random(),Math.random(),Math.random()*6.28]);
+function draw(t){
+ const th=(t/P)*Math.PI; // crank angle
+ const k=Math.floor((th/Math.PI))%4; const f=(th/Math.PI)%1;
+ txt('가솔린 기관의 4행정',VW/2,36,32,TX);
+ // stroke chips
+ for(let i=0;i<4;i++){const x=110+i*150;rr(x-62,64,124,36,18,i==k?ST[i][3]:'#EFE6DA');txt(ST[i][0],x,83,20,i==k?'#fff':'#8A7F75');if(i<3)txt('→',x+75,83,20,'#B9AEA3')}
+ // geometry
+ const cx=250,cylX=170,cylW=160,cylTop=225,R=45,L=130,crankY=482;
+ const a=th; // piston TDC at a=0
+ const px=cx+R*Math.sin(a),py=crankY-R*Math.cos(a);
+ const pinY=py-Math.sqrt(L*L-(R*Math.sin(a))**2);
+ const pistonTop=pinY-30;
+ // gas
+ const gasH=pistonTop-cylTop;
+ let gcol=ST[k][3];let alpha=0.25;
+ if(k==2){alpha=0.55*(1-f)+0.2}
+ c.globalAlpha=alpha;c.fillStyle=gcol;c.fillRect(cylX,cylTop,cylW,gasH);c.globalAlpha=1;
+ // particles
+ for(const[p,q,ph]of parts){let x=cylX+8+p*(cylW-16),y=cylTop+6+q*(gasH-12);x+=Math.sin(t*6+ph)*3;y+=Math.cos(t*5+ph)*3;c.beginPath();c.arc(x,y,3.2,0,6.28);c.fillStyle=k==2?(f<0.3?'#FFB000':HOT):k==3?'#7D7D7D':k==0?COLD:NV;c.fill()}
+ // cylinder walls
+ c.fillStyle='#C9C2BA';c.fillRect(cylX-18,cylTop-20,18,215);c.fillRect(cylX+cylW,cylTop-20,18,215);
+ // head
+ c.fillStyle='#A9A29A';c.fillRect(cylX-18,cylTop-30,cylW+36,30);
+ // ports
+ const vIn=(k==0)?Math.sin(f*Math.PI)*14:0,vEx=(k==3)?Math.sin(f*Math.PI)*14:0;
+ c.fillStyle=BG;c.fillRect(cylX+18,cylTop-30,36,30);c.fillRect(cylX+cylW-54,cylTop-30,36,30);
+ c.fillStyle=NV;c.fillRect(cylX+14,cylTop-4+vIn,44,6);c.fillRect(cylX+33,cylTop-60,6,56+vIn);
+ c.fillRect(cylX+cylW-58,cylTop-4+vEx,44,6);c.fillRect(cylX+cylW-39,cylTop-60,6,56+vEx);
+ txt('흡입 밸브',cylX+20,cylTop-74,17,COLD,'right');txt('배기 밸브',cylX+cylW-20,cylTop-74,17,'#7D7D7D','left');
+ // spark plug
+ c.fillStyle='#6B6B6B';c.fillRect(cx-6,cylTop-46,12,46);
+ if(k==2&&f<0.25){c.fillStyle='#FFD000';for(let i=0;i<8;i++){const an=i*0.785+t*10;c.beginPath();c.moveTo(cx,cylTop+6);c.lineTo(cx+Math.cos(an)*26,cylTop+6+Math.sin(an)*26);c.lineWidth=3;c.strokeStyle='#FFB000';c.stroke()}}
+ // flows
+ if(k==0)arrow(cylX-20,cylTop-50,cylX+30,cylTop-8,6,COLD);
+ if(k==3)arrow(cylX+cylW-30,cylTop-8,cylX+cylW+20,cylTop-50,6,'#7D7D7D');
+ // piston
+ rr(cylX+2,pistonTop,cylW-4,48,4,'#7C8595',NV,2);
+ c.strokeStyle='#5A6170';c.lineWidth=2;for(let i=1;i<3;i++){c.beginPath();c.moveTo(cylX+2,pistonTop+i*12);c.lineTo(cylX+cylW-2,pistonTop+i*12);c.stroke()}
+ // rod
+ c.strokeStyle=NV;c.lineWidth=12;c.lineCap='round';c.beginPath();c.moveTo(cx,pinY);c.lineTo(px,py);c.stroke();
+ // crank
+ c.beginPath();c.arc(cx,crankY,R+16,0,6.28);c.fillStyle='#E4DCD2';c.fill();c.strokeStyle='#B9AEA3';c.lineWidth=3;c.stroke();
+ c.strokeStyle=NV;c.lineWidth=14;c.beginPath();c.moveTo(cx,crankY);c.lineTo(px,py);c.stroke();
+ c.beginPath();c.arc(cx,crankY,9,0,6.28);c.fillStyle=NV;c.fill();
+ c.beginPath();c.arc(px,py,7,0,6.28);c.fillStyle='#fff';c.fill();
+ // power arrow
+ if(k==2){arrow(cylX+cylW+40,pistonTop-10,cylX+cylW+40,pistonTop+60,7,HOT);txt('W',cylX+cylW+66,pistonTop+26,26,HOT)}
+ if(k==1){arrow(cylX+cylW+40,pistonTop+60,cylX+cylW+40,pistonTop-10,7,NV);}
+ // explanation panel
+ rr(470,170,300,250,18,'#fff',ST[k][3],3);
+ txt(ST[k][0]+' 행정',620,215,34,ST[k][3]);
+ txt(ST[k][1],620,285,19,TX);txt(ST[k][2],620,315,19,TX);
+ const pd=['피스톤 ↓','피스톤 ↑','피스톤 ↓','피스톤 ↑'][k];
+ txt(pd,620,375,24,'#8A7F75');
+ txt('크랭크축이 2바퀴 돌 때 4행정이 한 번 순환한다.',VW/2,572,18,'#6E655D');
+}
+requestAnimationFrame(loop);
+</script></body></html>

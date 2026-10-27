@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}</style>
+</head><body><canvas id="cv"></canvas>
+<script>
+const VW=800,VH=600;const cv=document.getElementById('cv');cv.width=VW*2;cv.height=VH*2;const c=cv.getContext('2d');c.scale(2,2);
+const CR='#E3614A',NV='#35415A',BG='#FFF9F0',TX='#1F1F1F',HOT='#E3614A',COLD='#4A7BD0',GOLD='#F2A93B';
+const F=(s)=>s+"px 'Do Hyeon', 'Malgun Gothic', sans-serif";
+let paused=false,t=0,last=performance.now();
+cv.addEventListener('click',()=>{paused=!paused});
+function txt(s,x,y,size,col,al){c.font=F(size);c.fillStyle=col||TX;c.textAlign=al||'center';c.textBaseline='middle';c.fillText(s,x,y)}
+// subscript text: parts [[text,'n'|'s']]
+function stxt(parts,x,y,size,col,al){c.font=F(size);let w=0;for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);w+=c.measureText(p).width}let sx=al=='left'?x:al=='right'?x-w:x-w/2;c.fillStyle=col||TX;c.textAlign='left';c.textBaseline='middle';for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);c.fillText(p,sx,m=='s'?y+size*0.28:y);sx+=c.measureText(p).width}}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||2;c.stroke()}}
+function arrow(x1,y1,x2,y2,w,col){const a=Math.atan2(y2-y1,x2-x1),h=Math.max(w*1.8,14);c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;c.lineCap='butt';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2-Math.cos(a)*h*0.9,y2-Math.sin(a)*h*0.9);c.stroke();c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-Math.cos(a)*h-Math.sin(a)*h*0.6,y2-Math.sin(a)*h+Math.cos(a)*h*0.6);c.lineTo(x2-Math.cos(a)*h+Math.sin(a)*h*0.6,y2-Math.sin(a)*h-Math.cos(a)*h*0.6);c.closePath();c.fill()}
+function hint(){txt(paused?'▶ 클릭하면 재생':'❚❚ 클릭하면 멈춤',VW-14,VH-14,15,'#9A8F86','right')}
+function loop(now){let dt=Math.max(0,Math.min((now-last)/1000,0.05));last=now;if(!paused)t+=dt;c.fillStyle=BG;c.fillRect(0,0,VW,VH);draw(t);hint();requestAnimationFrame(loop)}
+const SETS=[[2000,400],[1000,300],[1000,400]];
+function draw(t){
+ const D=5,n=Math.floor(t/D)%SETS.length,f=Math.min(1,(t%D)/1.6);const[QH,W]=SETS[n];const QL=QH-W;const e=W/QH;
+ txt('열효율',VW/2,36,34,TX);
+ stxt([['열기관에 공급한 열 Q','n'],['H','s'],[' 중 일 W로 바뀐 비율','n']],VW/2,82,22,'#6E655D');
+ // bar
+ const x0=80,bw=640,by=150,bh=90;
+ rr(x0,by,bw,bh,12,'#EFE6DA');
+ const wW=bw*e*f;
+ c.save();c.beginPath();c.roundRect(x0,by,bw,bh,12);c.clip();
+ c.fillStyle=GOLD;c.fillRect(x0,by,wW,bh);c.fillStyle=COLD;c.globalAlpha=0.85;c.fillRect(x0+wW,by,(bw-wW)*f,bh);c.globalAlpha=1;c.restore();
+ stxt([['Q','n'],['H','s'],[' = '+QH+' J','n']],x0+bw/2,by-22,24,HOT);
+ if(f>0.5){txt('W = '+W+' J',x0+wW/2,by+bh/2,24,'#fff');stxt([['Q','n'],['L','s'],[' = '+QL+' J','n']],x0+wW+(bw-wW)/2,by+bh/2,24,'#fff')}
+ // brackets
+ txt('외부에 한 일',x0+wW/2,by+bh+24,18,'#C07A12');txt('저온의 열원으로 방출한 열',x0+wW+(bw-wW)/2,by+bh+24,18,COLD);
+ // formula
+ rr(120,320,560,170,18,'#fff',NV,2);
+ // e = W/QH = 1 - QL/QH
+ const fy=380;c.font=F(34);
+ txt('e  =',220,fy+10,34,TX);
+ txt('W',300,fy-12,30,TX);c.strokeStyle=TX;c.lineWidth=2.5;c.beginPath();c.moveTo(276,fy+10);c.lineTo(324,fy+10);c.stroke();stxt([['Q','n'],['H','s']],300,fy+34,30,TX);
+ txt('=',350,fy+10,34,TX);
+ txt(W+' J',420,fy-12,28,'#C07A12');c.beginPath();c.moveTo(375,fy+10);c.lineTo(465,fy+10);c.stroke();txt(QH+' J',420,fy+34,28,HOT);
+ txt('=',490,fy+10,34,TX);
+ txt(f>0.9?e.toFixed(1):'?',560,fy+10,46,CR);
+ txt('(×100 하면 '+Math.round(e*100)+'%)',400,fy+82,20,'#6E655D');
+ stxt([['Q','n'],['L','s'],['은 0이 될 수 없으므로 열효율은 항상 1보다 작다.','n']],VW/2,540,22,TX);
+}
+requestAnimationFrame(loop);
+</script></body></html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}</style>
+</head><body><canvas id="cv"></canvas>
+<script>
+const VW=800,VH=600;const cv=document.getElementById('cv');cv.width=VW*2;cv.height=VH*2;const c=cv.getContext('2d');c.scale(2,2);
+const CR='#E3614A',NV='#35415A',BG='#FFF9F0',TX='#1F1F1F',HOT='#E3614A',COLD='#4A7BD0',GOLD='#F2A93B';
+const F=(s)=>s+"px 'Do Hyeon', 'Malgun Gothic', sans-serif";
+let paused=false,t=0,last=performance.now();
+cv.addEventListener('click',()=>{paused=!paused});
+function txt(s,x,y,size,col,al){c.font=F(size);c.fillStyle=col||TX;c.textAlign=al||'center';c.textBaseline='middle';c.fillText(s,x,y)}
+// subscript text: parts [[text,'n'|'s']]
+function stxt(parts,x,y,size,col,al){c.font=F(size);let w=0;for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);w+=c.measureText(p).width}let sx=al=='left'?x:al=='right'?x-w:x-w/2;c.fillStyle=col||TX;c.textAlign='left';c.textBaseline='middle';for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);c.fillText(p,sx,m=='s'?y+size*0.28:y);sx+=c.measureText(p).width}}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||2;c.stroke()}}
+function arrow(x1,y1,x2,y2,w,col){const a=Math.atan2(y2-y1,x2-x1),h=Math.max(w*1.8,14);c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;c.lineCap='butt';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2-Math.cos(a)*h*0.9,y2-Math.sin(a)*h*0.9);c.stroke();c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-Math.cos(a)*h-Math.sin(a)*h*0.6,y2-Math.sin(a)*h+Math.cos(a)*h*0.6);c.lineTo(x2-Math.cos(a)*h+Math.sin(a)*h*0.6,y2-Math.sin(a)*h-Math.cos(a)*h*0.6);c.closePath();c.fill()}
+function hint(){txt(paused?'▶ 클릭하면 재생':'❚❚ 클릭하면 멈춤',VW-14,VH-14,15,'#9A8F86','right')}
+function loop(now){let dt=Math.max(0,Math.min((now-last)/1000,0.05));last=now;if(!paused)t+=dt;c.fillStyle=BG;c.fillRect(0,0,VW,VH);draw(t);hint();requestAnimationFrame(loop)}
+// Stirling P-V: T1=hot, T2=cold, V1<V2
+const T1=600,T2=300,V1=1,V2=2.6;
+const ox=90,oy=520,sx=(v)=>ox+(v-0.4)*150,sy=(p)=>oy-p*0.55;
+const P=(T,V)=>T/V;
+const STEPS=[
+ ['①→②','등온 과정','고온에서 기체가 열을 흡수하며 팽창해 외부에 일을 한다.','온도 일정',HOT],
+ ['②→③','등적 과정','부피가 일정한 채 기체가 냉각된다.','부피 일정',NV],
+ ['③→④','등온 과정','저온에서 기체가 압축되며 열을 방출한다.','온도 일정',COLD],
+ ['④→①','등적 과정','부피가 일정한 채 기체가 가열된다.','부피 일정',NV]];
+function pt(k,f){if(k==0){const v=V1+(V2-V1)*f;return[v,P(T1,v)]}if(k==1){const T=T1+(T2-T1)*f;return[V2,P(T,V2)]}if(k==2){const v=V2+(V1-V2)*f;return[v,P(T2,v)]}const T=T2+(T1-T2)*f;return[V1,P(T,V1)]}
+function path(k){c.beginPath();for(let i=0;i<=40;i++){const[v,p]=pt(k,i/40);const X=sx(v),Y=sy(p);i?c.lineTo(X,Y):c.moveTo(X,Y)}}
+function draw(t){
+ const D=2.2,k=Math.floor(t/D)%4,f=(t%D)/D;
+ txt('스털링 엔진의 순환 과정',VW/2,36,32,TX);
+ // axes
+ c.strokeStyle=TX;c.lineWidth=2.5;arrow(ox,oy,ox,90,2.5,TX);arrow(ox,oy,ox+420,oy,2.5,TX);
+ txt('압력',ox-30,100,20,TX);txt('부피',ox+420,oy+24,20,TX);txt('0',ox-14,oy+14,18,TX);
+ // isotherm guides
+ c.setLineDash([5,6]);c.lineWidth=1.5;for(const[T,col]of[[T1,HOT],[T2,COLD]]){c.strokeStyle=col;c.beginPath();for(let v=0.75;v<=3.0;v+=0.05){const X=sx(v),Y=sy(P(T,v));v==0.75?c.moveTo(X,Y):c.lineTo(X,Y)}c.stroke()}c.setLineDash([]);
+ stxt([['T','n'],['1','s']],sx(3.0)+16,sy(P(T1,3.0)),22,HOT,'left');stxt([['T','n'],['2','s']],sx(3.0)+16,sy(P(T2,3.0)),22,COLD,'left');
+ // area
+ c.beginPath();for(let kk=0;kk<4;kk++)for(let i=0;i<=40;i++){const[v,p]=pt(kk,i/40);const X=sx(v),Y=sy(p);(kk||i)?c.lineTo(X,Y):c.moveTo(X,Y)}c.closePath();c.fillStyle='rgba(242,169,59,0.22)';c.fill();
+ txt('W',sx(1.75),sy(270),30,'#C07A12');
+ // segments
+ for(let kk=0;kk<4;kk++){path(kk);c.strokeStyle=kk==k?STEPS[kk][4]:'#B9AEA3';c.lineWidth=kk==k?6:3;c.stroke()}
+ // points
+ const lab=[['①',V1,T1,-22,-14],['②',V2,T1,16,-14],['③',V2,T2,18,12],['④',V1,T2,-22,14]];
+ for(const[l,v,T,dx,dy]of lab){const X=sx(v),Y=sy(P(T,v));c.beginPath();c.arc(X,Y,5,0,6.28);c.fillStyle=TX;c.fill();txt(l,X+dx,Y+dy,22,TX)}
+ // heat arrows
+ if(k==0){arrow(sx(1.8),sy(P(T1,1.8))-70,sx(1.8),sy(P(T1,1.8))-12,5,HOT);txt('열 흡수',sx(1.8)+44,sy(P(T1,1.8))-62,18,HOT)}
+ if(k==2){arrow(sx(1.8),sy(P(T2,1.8))+12,sx(1.8),sy(P(T2,1.8))+70,5,COLD);txt('열 방출',sx(1.8)+44,sy(P(T2,1.8))+62,18,COLD)}
+ // moving dot
+ const[v,p]=pt(k,f);c.beginPath();c.arc(sx(v),sy(p),11,0,6.28);c.fillStyle=STEPS[k][4];c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
+ // panel
+ for(let i=0;i<4;i++){const y=110+i*104,on=i==k;rr(540,y,240,92,14,on?STEPS[i][4]:'#fff',on?null:'#D9D0C6',2);
+  txt(STEPS[i][0]+' '+STEPS[i][1],660,y+26,23,on?'#fff':TX);
+  const w=STEPS[i][2];const cut=w.indexOf(' ',Math.floor(w.length/2));c.font=F(15);
+  txt(w.slice(0,cut),660,y+56,15,on?'#fff':'#6E655D');txt(w.slice(cut+1),660,y+76,15,on?'#fff':'#6E655D')}
+ txt('색칠한 넓이 = 한 번 순환하는 동안 한 일',ox+210,566,17,'#6E655D');
+}
+requestAnimationFrame(loop);
+</script></body></html>
