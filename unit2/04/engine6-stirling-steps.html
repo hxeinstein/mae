@@ -1,557 +1,209 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>스털링 기관 단계별 보기</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#eef2f5; --panel:#ffffff; --ink:#1d2733; --sub:#5b6878; --line:#d5dde5;
-  --hot:#d7353f; --cold:#2a62b8; --heat:#ee8f12; --chip:#f2f5f8;
-  color-scheme:light;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#151b22; --panel:#1f2731; --ink:#e8edf2; --sub:#9aa8b8; --line:#34404d; --chip:#28323e;
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#151b22; --panel:#1f2731; --ink:#e8edf2; --sub:#9aa8b8; --line:#34404d; --chip:#28323e;
-  color-scheme:dark;
-}
-*{box-sizing:border-box}
-html,body{margin:0}
-body{
-  background:var(--bg); color:var(--ink);
-  font-family:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
-}
-.wrap{max-width:1200px;margin:0 auto;padding:18px 18px 28px}
-header h1{font-size:1.6rem;margin:0 0 4px;font-weight:700;letter-spacing:-0.01em}
-header p{margin:0;color:var(--sub);font-size:1rem}
-.stages{display:grid;grid-template-columns:1.12fr 1fr;gap:14px;margin-top:14px}
-.stage{background:#f9fbfc;border:1px solid var(--line);border-radius:14px;padding:10px 10px 6px}
-.stage h2{font-size:.95rem;margin:2px 6px 4px;color:#5b6878;font-weight:600}
-canvas{display:block;width:100%}
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
-.step{
-  border:2px solid var(--line);background:var(--panel);color:var(--ink);
-  border-radius:12px;padding:10px 12px 10px 18px;text-align:left;cursor:pointer;font:inherit;
-  position:relative;overflow:hidden;
-}
-.step::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--c)}
-.step b{display:block;font-size:1.3rem;font-weight:700}
-.step span{color:var(--sub);font-size:.92rem}
-.step.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
-.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
-.ctl{
-  font:inherit;font-size:1rem;font-weight:600;padding:9px 16px;border-radius:10px;
-  border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;
-}
-.ctl.main{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.speed{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-left:auto}
-.speed button{font:inherit;font-size:.92rem;padding:9px 12px;border:0;background:var(--panel);color:var(--sub);cursor:pointer}
-.speed button.on{background:var(--chip);color:var(--ink);font-weight:700}
-button:focus-visible{outline:3px solid var(--heat);outline-offset:2px}
-.info{display:grid;grid-template-columns:1.45fr 1fr;gap:14px;margin-top:14px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-.panel h3{margin:0 0 8px;font-size:1.3rem;font-weight:700}
-.panel p{margin:0;line-height:1.75;font-size:1.05rem;max-width:62ch}
-.law{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
-.law div{background:var(--chip);border-radius:10px;padding:8px 10px}
-.law small{display:block;color:var(--sub);font-size:.85rem}
-.law strong{font-size:1rem}
-.eq{margin-top:10px;font-weight:700;font-size:1.05rem}
-.meter{display:grid;grid-template-columns:3.6em 1fr 6.8em;align-items:center;gap:10px;margin:10px 0}
-.meter label{font-weight:600}
-.bar{height:14px;background:var(--chip);border-radius:7px;overflow:hidden}
-.bar i{display:block;height:100%;border-radius:7px;background:var(--sub)}
-.meter span{font-size:.92rem;color:var(--sub);text-align:right}
-.summary{margin-top:12px;padding:12px 14px;border-radius:10px;background:rgba(215,53,63,.10);line-height:1.7;display:none}
-.summary.show{display:block}
-.hint{margin-top:10px;color:var(--sub);font-size:.88rem}
-@media (max-width:860px){
-  .stages,.info{grid-template-columns:1fr}
-  .steps{grid-template-columns:repeat(2,1fr)}
-  .speed{margin-left:0}
-}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <header>
-    <h1>스털링 기관의 순환 과정</h1>
-    <p>① 상태에서 출발해 다시 ① 상태로 돌아오기까지, 한 단계씩 살펴보자.</p>
-  </header>
-
-  <div class="stages">
-    <div class="stage">
-      <h2>기관의 움직임</h2>
-      <canvas id="engine" aria-label="스털링 기관 단면 애니메이션"></canvas>
-    </div>
-    <div class="stage">
-      <h2>압력–부피 그래프</h2>
-      <canvas id="pv" aria-label="스털링 순환의 압력-부피 그래프"></canvas>
-    </div>
-  </div>
-
-  <div class="steps" id="steps">
-    <button class="step" data-i="0" style="--c:#d7353f"><b>① → ②</b><span>등온 팽창</span></button>
-    <button class="step" data-i="1" style="--c:linear-gradient(#d7353f,#2a62b8)"><b>② → ③</b><span>부피 일정, 냉각</span></button>
-    <button class="step" data-i="2" style="--c:#2a62b8"><b>③ → ④</b><span>등온 압축</span></button>
-    <button class="step" data-i="3" style="--c:linear-gradient(#2a62b8,#d7353f)"><b>④ → ①</b><span>부피 일정, 가열</span></button>
-  </div>
-
-  <div class="controls">
-    <button class="ctl" id="reset">처음으로</button>
-    <button class="ctl" id="prev">이전 단계</button>
-    <button class="ctl main" id="next">다음 단계</button>
-    <button class="ctl" id="play">자동 재생</button>
-    <div class="speed" id="speed">
-      <button data-s="0.55">느리게</button>
-      <button data-s="1" class="on">보통</button>
-      <button data-s="1.8">빠르게</button>
-    </div>
-  </div>
-
-  <div class="info">
-    <div class="panel">
-      <h3 id="title"></h3>
-      <p id="desc"></p>
-      <div class="law" id="law">
-        <div><small>열 Q</small><strong id="q"></strong></div>
-        <div><small>기체가 한 일 W</small><strong id="w"></strong></div>
-        <div><small>내부 에너지 변화 ΔU</small><strong id="u"></strong></div>
-      </div>
-      <div class="eq" id="eq"></div>
-      <div class="summary" id="summary">
-        <strong>한 순환을 마치면</strong><br>
-        기체는 처음 ① 상태로 돌아오므로 내부 에너지 변화는 0이다. 기관은 흡수한 열과 방출한 열의 차이만큼 외부에 일을 하며, 이 일의 크기는 그래프에서 순환 과정이 둘러싼 넓이와 같다.
-      </div>
-    </div>
-    <div class="panel">
-      <h3>지금 기체의 상태</h3>
-      <div class="meter"><label>부피</label><div class="bar"><i id="mV"></i></div><span id="tV"></span></div>
-      <div class="meter"><label>압력</label><div class="bar"><i id="mP"></i></div><span id="tP"></span></div>
-      <div class="meter"><label>온도</label><div class="bar"><i id="mT"></i></div><span id="tT"></span></div>
-      <div class="hint">키보드: → 다음 단계, ← 이전 단계, 스페이스바 자동 재생</div>
-    </div>
-  </div>
-</div>
-
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#FFF9F0;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}</style>
+</head><body><canvas id="cv"></canvas>
 <script>
-(function(){
-  /* ---------- 물리 상태 ---------- */
-  var T1 = 3, T2 = 1.5, V1 = 1, V2 = 3;
-  var HOT = [215,53,63], COLD = [42,98,184];
-  var GAS_HOT = [247,190,197], GAS_COLD = [194,226,240];
+const VW=800,VH=600;const cv=document.getElementById('cv');cv.width=VW*2;cv.height=VH*2;const c=cv.getContext('2d');c.scale(2,2);
+const CR='#E3614A',NV='#35415A',BG='#FFF9F0',TX='#1F1F1F',HOT='#E3614A',COLD='#4A7BD0',GOLD='#F2A93B',GRAY='#8A7F75';
+const F=(s)=>s+"px 'Do Hyeon', 'Malgun Gothic', sans-serif";
+function txt(s,x,y,size,col,al){c.font=F(size);c.fillStyle=col||TX;c.textAlign=al||'center';c.textBaseline='middle';c.fillText(s,x,y)}
+function stxt(parts,x,y,size,col,al){c.font=F(size);let w=0;for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);w+=c.measureText(p).width}let sx=al=='left'?x:al=='right'?x-w:x-w/2;c.fillStyle=col||TX;c.textAlign='left';c.textBaseline='middle';for(const[p,m]of parts){c.font=F(m=='s'?size*0.65:size);c.fillText(p,sx,m=='s'?y+size*0.28:y);sx+=c.measureText(p).width}}
+function rr(x,y,w,h,r,fill,stroke,lw){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||2;c.stroke()}}
+function arrow(x1,y1,x2,y2,w,col){const a=Math.atan2(y2-y1,x2-x1),h=Math.max(w*1.8,14);c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;c.lineCap='butt';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2-Math.cos(a)*h*0.9,y2-Math.sin(a)*h*0.9);c.stroke();c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-Math.cos(a)*h-Math.sin(a)*h*0.6,y2-Math.sin(a)*h+Math.cos(a)*h*0.6);c.lineTo(x2-Math.cos(a)*h+Math.sin(a)*h*0.6,y2-Math.sin(a)*h-Math.cos(a)*h*0.6);c.closePath();c.fill()}
 
-  function ease(x){ return x<=0?0:(x>=1?1:0.5-0.5*Math.cos(Math.PI*x)); }
-  function mix(a,b,k){ return [0,1,2].map(function(i){return Math.round(a[i]+(b[i]-a[i])*k);}); }
-  function rgb(c,a){ return a===undefined ? 'rgb('+c.join(',')+')' : 'rgba('+c.join(',')+','+a+')'; }
+/* ---------- 물리 상태 ---------- */
+const T1=3,T2=1.5,V1=1,V2=3;
+const HOTc=[227,97,74],COLDc=[74,123,208],GAS_HOT=[248,211,202],GAS_COLD=[207,224,245];
+const ease=x=>x<=0?0:(x>=1?1:0.5-0.5*Math.cos(Math.PI*x));
+const mix=(a,b,k)=>a.map((v,i)=>Math.round(v+(b[i]-v)*k));
+const rgb=(q,a)=>a===undefined?'rgb('+q.join(',')+')':'rgba('+q.join(',')+','+a+')';
+function stateAt(t){
+ const base=Math.floor(t),s=((base%4)+4)%4,f=ease(t-base);let d,p,Tn;
+ if(s===0){d=1;p=f;Tn=1}            // ①→② 등온 팽창
+ else if(s===1){d=1-f;p=1;Tn=1-f}   // ②→③ 부피 일정, 냉각
+ else if(s===2){d=0;p=1-f;Tn=0}     // ③→④ 등온 압축
+ else{d=f;p=0;Tn=f}                 // ④→① 부피 일정, 가열
+ const V=V1+(V2-V1)*p,T=T2+(T1-T2)*Tn;return{s,d,p,Tn,V,T,P:T/V};
+}
+const STEPS=[
+ {chip:'①→② 등온 팽창',col:HOT,title:'① → ② 등온 팽창',
+  l1:'피스톤이 위에 있어 기체는 아래쪽 고온부에 머문다.',l2:'기체가 열을 흡수하며 팽창해 동력 피스톤을 밀어 올린다.',
+  rows:[['흡수 (+)',HOT],['외부에 일을 함 (+)',HOT],['0 (온도 일정)',NV]],eq:'Q = W'},
+ {chip:'②→③ 등적 냉각',col:NV,title:'② → ③ 등적 과정 (냉각)',
+  l1:'피스톤이 내려가며 기체를 위쪽 저온부로 옮긴다.',l2:'기체가 열을 방출해 온도와 압력이 낮아진다.',
+  rows:[['방출 (−)',COLD],['0 (부피 일정)',NV],['감소 (−)',COLD]],eq:'Q = ΔU'},
+ {chip:'③→④ 등온 압축',col:COLD,title:'③ → ④ 등온 압축',
+  l1:'휠의 관성으로 동력 피스톤이 내려가 기체를 압축한다.',l2:'기체가 저온부로 열을 방출해 온도가 일정하게 유지된다.',
+  rows:[['방출 (−)',COLD],['일을 받음 (−)',COLD],['0 (온도 일정)',NV]],eq:'Q = W'},
+ {chip:'④→① 등적 가열',col:NV,title:'④ → ① 등적 과정 (가열)',
+  l1:'피스톤이 올라가며 기체를 아래쪽 고온부로 옮긴다.',l2:'기체가 열을 흡수해 온도와 압력이 높아져 ①로 돌아온다.',
+  rows:[['흡수 (+)',HOT],['0 (부피 일정)',NV],['증가 (+)',HOT]],eq:'Q = ΔU'}];
+const INTRO={title:'① 상태에서 출발',l1:'기체의 부피가 작고, 고온부에 있어 온도와 압력이 높다.',l2:'‘다음 ▶’을 누르거나 위의 단계를 눌러 따라가 보자.'};
 
-  function stateAt(t){
-    var base = Math.floor(t), s = ((base%4)+4)%4, f = ease(t-base);
-    var d,p,Tn;
-    if(s===0){ d=1; p=f; Tn=1; }          // ①→② 등온 팽창
-    else if(s===1){ d=1-f; p=1; Tn=1-f; } // ②→③ 부피 일정 냉각
-    else if(s===2){ d=0; p=1-f; Tn=0; }   // ③→④ 등온 압축
-    else { d=f; p=0; Tn=f; }              // ④→① 부피 일정 가열
-    var V = V1+(V2-V1)*p, T = T2+(T1-T2)*Tn;
-    return {s:s,d:d,p:p,Tn:Tn,V:V,T:T,P:T/V};
-  }
+/* ---------- 진행 제어 ---------- */
+let t=0,target=null,playing=false,speed=1,cycles=0;const SEG_DUR=3.2;
+const moving=()=>playing||target!==null;
+function infoSeg(){if(moving())return Math.floor(t)%4;const k=Math.round(t);return k===0?-1:(k-1)%4}
+function goStep(i){playing=false;t=i;target=i+1}
+function next(){playing=false;if(target!==null){t=target;if(t>=4)cycles++;target=null}let k=Math.round(t);if(k>=4)k=0;t=k;target=k+1}
+function prev(){playing=false;target=null;t=Math.max(0,Math.round(t)-1)}
+function reset(){playing=false;target=null;t=0;cycles=0}
+function togglePlay(){if(playing){playing=false;const k=Math.ceil(t-1e-9);if(k>t)target=k}else{playing=true;target=null;if(t>=4)t=0}}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){next();e.preventDefault()}else if(e.key==='ArrowLeft'){prev();e.preventDefault()}else if(e.key===' '){togglePlay();e.preventDefault()}});
+let hits=[];
+cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect(),s=Math.min(r.width/VW,r.height/VH);
+ const x=(e.clientX-r.left-(r.width-VW*s)/2)/s,y=(e.clientY-r.top-(r.height-VH*s)/2)/s;
+ for(const h of hits)if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){h.act();break}});
+cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect(),s=Math.min(r.width/VW,r.height/VH);
+ const x=(e.clientX-r.left-(r.width-VW*s)/2)/s,y=(e.clientY-r.top-(r.height-VH*s)/2)/s;
+ cv.style.cursor=hits.some(h=>x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h)?'pointer':'default'});
 
-  var STEPS = [
-    {title:'① → ② 등온 팽창',
-     desc:'피스톤이 위쪽에 있어서 기체는 대부분 아래쪽 고온부에 머문다. 기체는 고온부에서 열을 흡수하며 팽창하고, 동력 피스톤을 밀어 올려 휠을 돌린다. 온도가 T₁로 일정하므로 내부 에너지는 변하지 않는다.',
-     q:['흡수 (Q > 0)','#d7353f'], w:['외부에 일을 함 (W > 0)','#d7353f'], u:['변화 없음 (ΔU = 0)',''], eq:'흡수한 열이 모두 일로 바뀐다: Q = W'},
-    {title:'② → ③ 부피 일정, 냉각',
-     desc:'동력 피스톤은 위에 머물러 있어 기체의 부피는 변하지 않는다. 휠이 계속 돌면서 피스톤이 아래로 내려가고, 기체는 피스톤 옆 틈을 지나 위쪽 저온부로 옮겨 간다. 기체는 열을 방출하고 온도와 압력이 낮아진다.',
-     q:['방출 (Q < 0)','#2a62b8'], w:['0 (부피 일정)',''], u:['감소 (ΔU < 0)','#2a62b8'], eq:'방출한 열만큼 내부 에너지가 줄어든다: Q = ΔU'},
-    {title:'③ → ④ 등온 압축',
-     desc:'기체가 저온부에 모여 있는 상태에서, 휠의 관성으로 동력 피스톤이 내려가 기체를 압축한다. 압축되는 동안 기체가 저온부로 열을 방출하므로 온도는 T₂로 일정하게 유지된다.',
-     q:['방출 (Q < 0)','#2a62b8'], w:['외부로부터 일을 받음 (W < 0)','#2a62b8'], u:['변화 없음 (ΔU = 0)',''], eq:'받은 일만큼 열을 방출한다: Q = W'},
-    {title:'④ → ① 부피 일정, 가열',
-     desc:'동력 피스톤은 아래에 머물러 있어 기체의 부피는 변하지 않는다. 피스톤이 위로 올라가면서 기체가 아래쪽 고온부로 옮겨 간다. 기체는 열을 흡수하고 온도와 압력이 높아져 다시 ① 상태로 돌아온다.',
-     q:['흡수 (Q > 0)','#d7353f'], w:['0 (부피 일정)',''], u:['증가 (ΔU > 0)','#d7353f'], eq:'흡수한 열만큼 내부 에너지가 늘어난다: Q = ΔU'}
-  ];
-  var INTRO = {title:'① 상태에서 출발',
-    desc:'기체의 부피가 작고, 기체가 고온부에 있어 온도가 높은 상태이다. 압력이 가장 크다. ‘다음 단계’를 누르거나 아래의 단계 버튼을 눌러 순환 과정을 따라가 보자.'};
+/* ---------- 기관 (내부 좌표 600×440) ---------- */
+const G={cx0:110,cx1:390,cy0:210,cy1:340,px0:300,px1:360,pyTop:100};
+const dTop=d=>302-84*d, pBot=p=>192-60*p;
+const R=3.2,parts=[];
+function inside(x,y,st){const dt=dTop(st.d),pb=pBot(st.p);
+ const inCh=x>G.cx0+R&&x<G.cx1-R&&y>G.cy0+R&&y<G.cy1-R;
+ const inDisp=x>122-R&&x<378+R&&y>dt-R&&y<dt+30+R;
+ const inPw=x>G.px0+R&&x<G.px1-R&&y>pb+R&&y<G.cy0+R+2;
+ return(inCh&&!inDisp)||inPw}
+function respawn(q,st){const pb=pBot(st.p);for(let n=0;n<80;n++){const x=G.cx0+Math.random()*(G.cx1-G.cx0),y=pb+Math.random()*(G.cy1-pb);if(inside(x,y,st)){q.x=x;q.y=y;return}}}
+{const st=stateAt(0);for(let i=0;i<52;i++){const a=Math.random()*6.28,q={x:0,y:0,vx:Math.cos(a),vy:Math.sin(a)};respawn(q,st);parts.push(q)}}
+function moveParts(st,dt){const v=28+85*st.Tn;for(const q of parts){if(!inside(q.x,q.y,st))respawn(q,st);
+ const nx=q.x+q.vx*v*dt,ny=q.y+q.vy*v*dt;
+ if(inside(nx,ny,st)){q.x=nx;q.y=ny}else if(inside(q.x-q.vx*v*dt,ny,st))q.vx=-q.vx;else if(inside(nx,q.y-q.vy*v*dt,st))q.vy=-q.vy;else{q.vx=-q.vx;q.vy=-q.vy}}}
 
-  /* ---------- 진행 제어 ---------- */
-  var t = 0, target = null, playing = false, speed = 1, cycles = 0;
-  var SEG_DUR = 3.4;
+function drawEngine(st,seg,now){
+ c.save();c.translate(12,112);c.scale(0.64,0.64);
+ const pulse=0.55+0.45*Math.sin(now/260),dT=dTop(st.d),pb=pBot(st.p);
+ const heating=seg===0||seg===3,cooling=seg===1||seg===2;
+ // 가열판, 냉각 핀
+ if(heating){c.globalAlpha=0.25+0.25*pulse;rr(G.cx0-16,G.cy1+6,G.cx1-G.cx0+32,28,10,GOLD);c.globalAlpha=1}
+ rr(G.cx0-10,G.cy1+12,G.cx1-G.cx0+20,16,5,HOT);
+ c.fillStyle=COLD;for(let fx=118;fx<=284;fx+=14){if(Math.abs(fx+4-160)<10)continue;c.fillRect(fx,G.cy0-24,8,14)}
+ // 실린더
+ c.fillStyle='#C9C2BA';c.fillRect(G.cx0-12,G.cy0-12,G.cx1-G.cx0+24,G.cy1-G.cy0+24);c.fillRect(G.px0-10,G.pyTop,G.px1-G.px0+20,G.cy0-G.pyTop);
+ c.fillStyle=BG;c.fillRect(G.px0,G.pyTop,G.px1-G.px0,G.cy0-G.pyTop+1);
+ const gas=rgb(mix(GAS_COLD,GAS_HOT,st.Tn));c.fillStyle=gas;c.fillRect(G.cx0,G.cy0,G.cx1-G.cx0,G.cy1-G.cy0);c.fillRect(G.px0,pb,G.px1-G.px0,G.cy0-pb+1);
+ c.fillStyle=rgb(mix(COLDc,HOTc,st.Tn));for(const q of parts){c.beginPath();c.arc(q.x,q.y,R,0,6.28);c.fill()}
+ // 피스톤
+ rr(122,dT,256,30,6,'#7C8595',NV,2.5);c.strokeStyle='#5A6170';c.lineWidth=2;c.beginPath();c.moveTo(124,dT+15);c.lineTo(376,dT+15);c.stroke();
+ txt('피스톤',270,dT+15,24,'#fff');
+ // 막대·크랭크축
+ const a=t*Math.PI/2,jD=56+12*(1-2*st.d),jP=56+12*(1-2*st.p),rTD=dT-140,rTP=pb-50;
+ c.strokeStyle='#A9A29A';c.lineWidth=7;c.lineCap='butt';
+ c.beginPath();c.moveTo(160,dT);c.lineTo(160,rTD);c.stroke();c.beginPath();c.moveTo(330,pb-20);c.lineTo(330,rTP);c.stroke();
+ c.strokeStyle=NV;c.lineWidth=4;c.beginPath();c.moveTo(160,rTD);c.lineTo(160,jD);c.stroke();c.beginPath();c.moveTo(330,rTP);c.lineTo(330,jP);c.stroke();
+ c.lineWidth=6;c.lineJoin='round';c.beginPath();c.moveTo(96,56);c.lineTo(140,56);c.lineTo(140,jD);c.lineTo(180,jD);c.lineTo(180,56);
+ c.lineTo(310,56);c.lineTo(310,jP);c.lineTo(350,jP);c.lineTo(350,56);c.lineTo(520,56);c.stroke();
+ for(const[x,y]of[[160,jD],[160,rTD],[330,jP],[330,rTP]]){c.beginPath();c.arc(x,y,6,0,6.28);c.fillStyle='#fff';c.fill();c.strokeStyle=NV;c.lineWidth=3;c.stroke()}
+ c.fillStyle='#A9A29A';c.fillRect(90,44,10,24);
+ // 동력 피스톤
+ rr(G.px0+1,pb-22,G.px1-G.px0-2,22,4,NV);
+ txt('동력 피스톤',G.px1+16,pb-11,24,NV,'left');
+ // 휠
+ const wx=520,wy=56,wr=46;
+ c.beginPath();c.arc(wx,wy,wr,0,6.28);c.strokeStyle='#E4DCD2';c.lineWidth=12;c.stroke();
+ c.strokeStyle='#B9AEA3';c.lineWidth=2.5;c.beginPath();c.arc(wx,wy,wr+6,0,6.28);c.stroke();c.beginPath();c.arc(wx,wy,wr-6,0,6.28);c.stroke();
+ c.strokeStyle=NV;c.lineWidth=3.5;for(let k=0;k<6;k++){const aa=a+k*Math.PI/3;c.beginPath();c.moveTo(wx+9*Math.cos(aa),wy+9*Math.sin(aa));c.lineTo(wx+(wr-6)*Math.cos(aa),wy+(wr-6)*Math.sin(aa));c.stroke()}
+ c.beginPath();c.arc(wx,wy,10,0,6.28);c.fillStyle=NV;c.fill();
+ c.beginPath();c.arc(wx+(wr-14)*Math.cos(a),wy+(wr-14)*Math.sin(a),6,0,6.28);c.fillStyle=CR;c.fill();
+ c.strokeStyle=GRAY;c.lineWidth=3;c.beginPath();c.arc(wx,wy,wr+18,-0.2,0.8);c.stroke();
+ {const ea=0.8,ax=wx+(wr+18)*Math.cos(ea),ay=wy+(wr+18)*Math.sin(ea),tg=ea+Math.PI/2;c.fillStyle=GRAY;c.beginPath();c.moveTo(ax+11*Math.cos(tg),ay+11*Math.sin(tg));c.lineTo(ax+7*Math.cos(ea),ay+7*Math.sin(ea));c.lineTo(ax-7*Math.cos(ea),ay-7*Math.sin(ea));c.closePath();c.fill()}
+ txt('휠',wx-74,wy-30,26,NV);
+ // 영역 이름
+ txt('저온부',14,G.cy0-8,28,COLD,'left');stxt([['(T','n'],['2','s'],[')','n']],14,G.cy0+22,24,COLD,'left');
+ txt('고온부',14,G.cy1+14,28,HOT,'left');stxt([['(T','n'],['1','s'],[')','n']],14,G.cy1+44,24,HOT,'left');
+ // 열 화살표
+ c.globalAlpha=0.55+0.45*pulse;
+ if(heating){for(const x of[180,250,320])arrow(x,G.cy1+95,x,G.cy1+38,8,HOT);c.globalAlpha=1;txt('열 흡수',14,G.cy1+82,28,HOT,'left')}
+ if(cooling){for(const x of[128,206,262])arrow(x,G.cy0-28,x,G.cy0-80,8,COLD);c.globalAlpha=1;txt('열 방출',14,G.cy0-60,28,COLD,'left')}
+ c.globalAlpha=1;c.restore();
+}
 
-  function isMoving(){ return playing || target!==null; }
-  function infoSeg(){
-    if(isMoving()) return Math.floor(t)%4;
-    var k = Math.round(t);
-    if(k===0) return -1;
-    return (k-1)%4;
-  }
+/* ---------- P-V 그래프 (내부 좌표 520×440) ---------- */
+const OX=64,OY=392,GW=430,GH=350,VMAX=3.6,PMAX=3.4;
+const xV=V=>OX+V/VMAX*GW,yP=P=>OY-P/PMAX*GH;
+function drawPV(st,seg,now){
+ c.save();c.translate(418,104);c.scale(0.68,0.68);
+ const pulse=0.55+0.45*Math.sin(now/260);
+ // 넓이
+ c.beginPath();for(let i=0;i<=40;i++){const V=V1+(V2-V1)*i/40;i?c.lineTo(xV(V),yP(T1/V)):c.moveTo(xV(V),yP(T1/V))}
+ for(let j=0;j<=40;j++){const V=V2-(V2-V1)*j/40;c.lineTo(xV(V),yP(T2/V))}c.closePath();c.fillStyle='rgba(242,169,59,0.22)';c.fill();
+ // 축
+ arrow(OX,OY,OX,OY-GH-24,3,TX);arrow(OX,OY,OX+GW+20,OY,3,TX);
+ txt('압력',OX-34,OY-GH-14,28,TX);txt('부피',OX+GW+14,OY+32,28,TX);txt('0',OX-18,OY+18,24,TX);
+ c.setLineDash([5,6]);c.strokeStyle='#B9AEA3';c.lineWidth=2;
+ for(const V of[V1,V2]){c.beginPath();c.moveTo(xV(V),OY);c.lineTo(xV(V),yP(T1/V));c.stroke()}
+ // 등온선
+ for(const[T,col]of[[T1,HOT],[T2,COLD]]){c.strokeStyle=col;c.beginPath();for(let i=0;i<=60;i++){const V=0.92+(3.45-0.92)*i/60;i?c.lineTo(xV(V),yP(T/V)):c.moveTo(xV(V),yP(T/V))}c.stroke()}
+ c.setLineDash([]);
+ stxt([['V','n'],['1','s']],xV(V1),OY+22,26,GRAY);stxt([['V','n'],['2','s']],xV(V2),OY+22,26,GRAY);
+ stxt([['T','n'],['1','s']],xV(3.45)+8,yP(T1/3.45)-4,28,HOT,'left');stxt([['T','n'],['2','s']],xV(3.45)+8,yP(T2/3.45),28,COLD,'left');
+ txt('W',xV(1.95),yP(1.2),44,'#C07A12');
+ txt('색칠한 넓이 = 한 순환 동안 한 일',xV(2.45),yP(3.25),22,GRAY);
+ // 경로
+ c.lineCap='round';
+ const seg4=(t0,t1,w,colf)=>{let pr=stateAt(t0);for(let tt=t0+0.02;tt<=t1+1e-9;tt+=0.02){const s=stateAt(Math.min(tt,t1));c.strokeStyle=colf((pr.Tn+s.Tn)/2);c.lineWidth=w;c.beginPath();c.moveTo(xV(pr.V),yP(pr.P));c.lineTo(xV(s.V),yP(s.P));c.stroke();pr=s}};
+ seg4(0,4,4,()=>'#B9AEA3');
+ if(t>0)seg4(0,t,8,k=>rgb(mix(COLDc,HOTc,k)));
+ // 방향 화살촉
+ for(const m of[0.5,1.5,2.5,3.5]){if(t<m+0.05&&cycles===0)continue;const A=stateAt(m-0.03),B=stateAt(m+0.03);const an=Math.atan2(yP(B.P)-yP(A.P),xV(B.V)-xV(A.V)),X=xV(B.V),Y=yP(B.P);
+  c.fillStyle=rgb(mix(COLDc,HOTc,B.Tn));c.beginPath();c.moveTo(X+13*Math.cos(an),Y+13*Math.sin(an));c.lineTo(X-10*Math.cos(an-0.6),Y-10*Math.sin(an-0.6));c.lineTo(X-10*Math.cos(an+0.6),Y-10*Math.sin(an+0.6));c.closePath();c.fill()}
+ // 상태 번호
+ for(const[V,P,l,dx,dy]of[[V1,T1/V1,'①',-26,-16],[V2,T1/V2,'②',24,-18],[V2,T2/V2,'③',24,20],[V1,T2/V1,'④',-26,18]]){
+  c.beginPath();c.arc(xV(V),yP(P),6,0,6.28);c.fillStyle=TX;c.fill();txt(l,xV(V)+dx,yP(P)+dy,32,TX)}
+ // 열 화살표
+ c.globalAlpha=0.55+0.45*pulse;
+ if(seg===0){const X=xV(1.8),Y=yP(T1/1.8);arrow(X+40,Y-70,X+6,Y-12,7,HOT);c.globalAlpha=1;txt('열 흡수',X+48,Y-86,28,HOT,'left')}
+ if(seg===1){const X=xV(V2),Y=yP(0.72);arrow(X+8,Y,X+60,Y,7,COLD);c.globalAlpha=1;txt('열 방출',X-12,Y,28,COLD,'right')}
+ if(seg===2){const X=xV(1.8),Y=yP(T2/1.8);arrow(X-4,Y+12,X-40,Y+64,7,COLD);c.globalAlpha=1;txt('열 방출',X-20,Y+84,28,COLD,'left')}
+ if(seg===3){const X=xV(V1),Y=yP(2.25);arrow(X-66,Y,X-8,Y,7,HOT);c.globalAlpha=1;txt('열 흡수',X-12,Y-28,28,HOT,'right')}
+ c.globalAlpha=1;
+ // 현재 상태
+ c.beginPath();c.arc(xV(st.V),yP(st.P),15,0,6.28);c.fillStyle=rgb(mix(COLDc,HOTc,st.Tn));c.fill();c.strokeStyle='#fff';c.lineWidth=4;c.stroke();
+ c.restore();
+}
 
-  function goStep(i){ playing=false; t=i; target=i+1; }
-  function next(){
-    playing=false;
-    if(target!==null){ t=target; if(t>=4) cycles++; target=null; }
-    var k = Math.round(t); if(k>=4) k=0;
-    t=k; target=k+1;
-  }
-  function prev(){
-    playing=false; target=null;
-    var k = Math.round(t); k = Math.max(0,k-1); t=k;
-  }
-  function reset(){ playing=false; target=null; t=0; cycles=0; }
-  function togglePlay(){
-    if(playing){ playing=false; var c=Math.ceil(t-1e-9); if(c>t) target=c; }
-    else { playing=true; if(target!==null) target=null; if(t>=4) t=0; }
-  }
+/* ---------- 화면 구성 ---------- */
+function button(x,y,w,h,label,act,style){
+ if(style==='main')rr(x,y,w,h,h/2,NV);else if(style==='on')rr(x,y,w,h,h/2,'#F8D3CA');else rr(x,y,w,h,h/2,'#fff','#EADFD2',2);
+ txt(label,x+w/2,y+h/2+1,19,style==='main'?'#fff':NV);hits.push({x,y,w,h,act});
+}
+function drawUI(seg,now){
+ hits=[];
+ txt('스털링 기관 단계별 보기',VW/2,32,32,TX);
+ // 단계 칩
+ for(let i=0;i<4;i++){const x=24+i*190,on=i===seg;rr(x,56,180,40,20,on?STEPS[i].col:'#EFE6DA');txt(STEPS[i].chip,x+90,77,19,on?'#fff':GRAY);hits.push({x,y:56,w:180,h:40,act:()=>goStep(i)})}
+ // 설명 판
+ const S=seg<0?INTRO:STEPS[seg],col=seg<0?NV:STEPS[seg].col;
+ rr(20,404,760,138,18,'#fff',col,3);
+ txt(S.title,44,434,28,col,'left');
+ txt(S.l1,44,474,20,TX,'left');txt(S.l2,44,504,20,TX,'left');
+ c.strokeStyle='#EADFD2';c.lineWidth=2;c.beginPath();c.moveTo(540,420);c.lineTo(540,526);c.stroke();
+ if(seg<0){txt('단계를 진행하면',660,456,19,GRAY);txt('Q, W, ΔU가 나타나요',660,484,19,GRAY)}
+ else{const L=['Q','W','ΔU'];for(let i=0;i<3;i++){txt(L[i],560,430+i*28,22,NV,'left');txt(S.rows[i][0],604,430+i*28,20,S.rows[i][1],'left')}
+  txt('→  '+S.eq,560,520,24,CR,'left')}
+ // 조작 버튼
+ button(20,554,100,36,'처음으로',reset);
+ button(128,554,92,36,'◀ 이전',prev);
+ button(228,554,100,36,'다음 ▶',next,'main');
+ button(336,554,124,36,playing?'❚❚ 멈춤':'▶ 자동 재생',togglePlay);
+ [['느리게',0.55],['보통',1],['빠르게',1.8]].forEach(([l,v],i)=>button(574+i*70,554,64,36,l,()=>{speed=v},speed===v?'on':''));
+}
 
-  document.querySelectorAll('.step').forEach(function(b){
-    b.addEventListener('click',function(){ goStep(+b.dataset.i); });
-  });
-  document.getElementById('next').onclick=next;
-  document.getElementById('prev').onclick=prev;
-  document.getElementById('reset').onclick=reset;
-  document.getElementById('play').onclick=togglePlay;
-  document.querySelectorAll('#speed button').forEach(function(b){
-    b.addEventListener('click',function(){
-      speed=+b.dataset.s;
-      document.querySelectorAll('#speed button').forEach(function(x){x.classList.toggle('on',x===b);});
-    });
-  });
-  document.addEventListener('keydown',function(e){
-    if(e.key==='ArrowRight'){ next(); e.preventDefault(); }
-    else if(e.key==='ArrowLeft'){ prev(); e.preventDefault(); }
-    else if(e.key===' '){ togglePlay(); e.preventDefault(); }
-  });
-
-  /* ---------- 캔버스 ---------- */
-  var ec=document.getElementById('engine'), ex=ec.getContext('2d');
-  var pc=document.getElementById('pv'), px=pc.getContext('2d');
-  var EW=600, EH=440, PW=520, PH=440;
-  function fit(c,W,H){
-    var w=c.getBoundingClientRect().width||W, dpr=window.devicePixelRatio||1;
-    c.style.height=(w*H/W)+'px';
-    c.width=Math.round(w*dpr); c.height=Math.round(w*H/W*dpr);
-    c._s=c.width/W;
-  }
-  function fitAll(){ fit(ec,EW,EH); fit(pc,PW,PH); }
-  window.addEventListener('resize',fitAll);
-  var FONT='"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
-
-  function arrow(ctx,x1,y1,x2,y2,color,w){
-    var a=Math.atan2(y2-y1,x2-x1), h=10+w;
-    ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=w; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2-Math.cos(a)*h*0.6,y2-Math.sin(a)*h*0.6); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x2,y2);
-    ctx.lineTo(x2-h*Math.cos(a-0.45),y2-h*Math.sin(a-0.45));
-    ctx.lineTo(x2-h*Math.cos(a+0.45),y2-h*Math.sin(a+0.45));
-    ctx.closePath(); ctx.fill();
-  }
-  function rrect(ctx,x,y,w,h,r){
-    ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
-    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
-  }
-
-  /* ---------- 기관 기하 ---------- */
-  var G={cx0:110,cx1:390,cy0:210,cy1:340,px0:300,px1:360,pyTop:100};
-  function dTop(d){ return 302-84*d; }
-  function pBot(p){ return 192-60*p; }
-
-  /* 기체 입자 */
-  var R=3, parts=[];
-  function inside(x,y,st){
-    var dt=dTop(st.d), pb=pBot(st.p);
-    var inCh = x>G.cx0+R && x<G.cx1-R && y>G.cy0+R && y<G.cy1-R;
-    var inDisp = x>122-R && x<378+R && y>dt-R && y<dt+30+R;
-    var inPw = x>G.px0+R && x<G.px1-R && y>pb+R && y<G.cy0+R+2;
-    return (inCh && !inDisp) || inPw;
-  }
-  function respawn(q,st){
-    var pb=pBot(st.p);
-    for(var n=0;n<80;n++){
-      var x=G.cx0+Math.random()*(G.cx1-G.cx0), y=pb+Math.random()*(G.cy1-pb);
-      if(inside(x,y,st)){ q.x=x; q.y=y; return; }
-    }
-  }
-  (function(){
-    var st=stateAt(0);
-    for(var i=0;i<52;i++){
-      var a=Math.random()*Math.PI*2, q={x:0,y:0,vx:Math.cos(a),vy:Math.sin(a)};
-      respawn(q,st); parts.push(q);
-    }
-  })();
-  function moveParts(st,dt){
-    var v=28+85*st.Tn, dT=dTop(st.d);
-    parts.forEach(function(q){
-      if(!inside(q.x,q.y,st)){
-        respawn(q,st);
-      }
-      var nx=q.x+q.vx*v*dt, ny=q.y+q.vy*v*dt;
-      if(inside(nx,ny,st)){ q.x=nx; q.y=ny; }
-      else if(inside(q.x-q.vx*v*dt,ny,st)){ q.vx=-q.vx; }
-      else if(inside(nx,q.y-q.vy*v*dt,st)){ q.vy=-q.vy; }
-      else { q.vx=-q.vx; q.vy=-q.vy; }
-    });
-  }
-
-  function drawEngine(st,seg,now){
-    var c=ex; c.setTransform(ec._s,0,0,ec._s,0,0);
-    c.fillStyle='#f9fbfc'; c.fillRect(0,0,EW,EH);
-    var pulse=0.55+0.45*Math.sin(now/260);
-    var gas=mix(GAS_COLD,GAS_HOT,st.Tn);
-    var dT=dTop(st.d), pb=pBot(st.p);
-
-    // 고온부 가열판
-    var heating = (seg===0||seg===3);
-    var hg=c.createLinearGradient(0,G.cy1+10,0,G.cy1+28);
-    hg.addColorStop(0,'#f08a8f'); hg.addColorStop(1,'#c9252f');
-    c.fillStyle=hg; rrect(c,G.cx0-10,G.cy1+12,G.cx1-G.cx0+20,16,4); c.fill();
-    if(heating){
-      c.fillStyle='rgba(238,143,18,'+(0.18+0.18*pulse)+')';
-      rrect(c,G.cx0-14,G.cy1+8,G.cx1-G.cx0+28,24,8); c.fill();
-    }
-    // 저온부 냉각 핀
-    c.fillStyle='#7aa7dd';
-    for(var fx=118; fx<=284; fx+=14){ if(Math.abs(fx+4-160)<10) continue; c.fillRect(fx,G.cy0-24,8,14); }
-
-    // 실린더 벽
-    c.fillStyle='#8c98a6';
-    c.fillRect(G.cx0-10,G.cy0-10,G.cx1-G.cx0+20,G.cy1-G.cy0+20);
-    c.fillRect(G.px0-8,G.pyTop,G.px1-G.px0+16,G.cy0-G.pyTop);
-    // 내부
-    c.fillStyle='#f9fbfc'; c.fillRect(G.px0,G.pyTop,G.px1-G.px0,G.cy0-G.pyTop+1);
-    c.fillStyle=rgb(gas);
-    c.fillRect(G.cx0,G.cy0,G.cx1-G.cx0,G.cy1-G.cy0);
-    c.fillRect(G.px0,pb,G.px1-G.px0,G.cy0-pb+1);
-
-    // 기체 입자
-    var pcol=mix(COLD,HOT,st.Tn);
-    c.fillStyle=rgb(pcol,0.85);
-    parts.forEach(function(q){ c.beginPath(); c.arc(q.x,q.y,R,0,Math.PI*2); c.fill(); });
-
-    // 피스톤(기체를 옮기는 큰 피스톤)
-    var mg=c.createLinearGradient(0,dT,0,dT+30);
-    mg.addColorStop(0,'#e3e8ee'); mg.addColorStop(0.5,'#7d8894'); mg.addColorStop(1,'#cbd2da');
-    c.fillStyle=mg; rrect(c,122,dT,256,30,5); c.fill();
-    c.fillStyle='#ffffff'; c.font='700 15px '+FONT; c.textAlign='center'; c.textBaseline='middle';
-    c.fillText('피스톤',270,dT+15.5);
-
-    // 막대와 크랭크
-    var a=t*Math.PI/2;
-    var jD=56+12*(1-2*st.d), jP=56+12*(1-2*st.p);
-    var rTD=dT-140, rTP=pb-20-30;
-    c.strokeStyle='#9aa3ad'; c.lineWidth=5; c.lineCap='butt';
-    c.beginPath(); c.moveTo(160,dT); c.lineTo(160,rTD); c.stroke();
-    c.beginPath(); c.moveTo(330,pb-20); c.lineTo(330,rTP); c.stroke();
-    c.strokeStyle='#1d2733'; c.lineWidth=3;
-    c.beginPath(); c.moveTo(160,rTD); c.lineTo(160,jD); c.stroke();
-    c.beginPath(); c.moveTo(330,rTP); c.lineTo(330,jP); c.stroke();
-    c.lineWidth=4; c.lineJoin='round';
-    c.beginPath(); c.moveTo(96,56); c.lineTo(140,56); c.lineTo(140,jD); c.lineTo(180,jD); c.lineTo(180,56);
-    c.lineTo(310,56); c.lineTo(310,jP); c.lineTo(350,jP); c.lineTo(350,56); c.lineTo(520,56); c.stroke();
-    c.fillStyle='#1d2733';
-    [[160,jD],[160,rTD],[330,jP],[330,rTP]].forEach(function(j){ c.beginPath(); c.arc(j[0],j[1],4.5,0,Math.PI*2); c.fill(); });
-    c.fillStyle='#96a0ab'; c.fillRect(92,46,8,20);
-
-    // 동력 피스톤
-    c.fillStyle='#2b4f9e'; rrect(c,G.px0+1,pb-20,G.px1-G.px0-2,20,3); c.fill();
-    c.fillStyle='#1d2733'; c.font='600 14px '+FONT; c.textAlign='left'; c.textBaseline='middle';
-    c.fillText('동력 피스톤',G.px1+14,pb-10);
-
-    // 휠
-    var wx=520, wy=56, wr=46;
-    c.lineWidth=9; c.strokeStyle='#c8ad78'; c.beginPath(); c.arc(wx,wy,wr,0,Math.PI*2); c.stroke();
-    c.lineWidth=1.5; c.strokeStyle='#8a7246'; c.beginPath(); c.arc(wx,wy,wr+4.5,0,Math.PI*2); c.stroke();
-    c.beginPath(); c.arc(wx,wy,wr-4.5,0,Math.PI*2); c.stroke();
-    c.strokeStyle='#a68c5c'; c.lineWidth=3;
-    for(var k=0;k<8;k++){ var aa=a+k*Math.PI/4; c.beginPath(); c.moveTo(wx+8*Math.cos(aa),wy+8*Math.sin(aa)); c.lineTo(wx+(wr-4)*Math.cos(aa),wy+(wr-4)*Math.sin(aa)); c.stroke(); }
-    c.fillStyle='#6f7a86'; c.beginPath(); c.arc(wx,wy,9,0,Math.PI*2); c.fill();
-    c.fillStyle='#d7353f'; c.beginPath(); c.arc(wx+(wr-12)*Math.cos(a),wy+(wr-12)*Math.sin(a),4,0,Math.PI*2); c.fill();
-    // 회전 방향
-    c.strokeStyle='#1d2733'; c.lineWidth=2; c.beginPath(); c.arc(wx,wy,wr+13,-0.2,0.75); c.stroke();
-    var ea=0.75, ax=wx+(wr+13)*Math.cos(ea), ay=wy+(wr+13)*Math.sin(ea);
-    c.fillStyle='#1d2733'; c.beginPath(); c.moveTo(ax-6,ay-1); c.lineTo(ax+5,ay-5); c.lineTo(ax+1,ay+7); c.closePath(); c.fill();
-    c.font='600 14px '+FONT; c.textAlign='center'; c.fillText('휠',wx,wy+wr+26);
-
-    // 영역 라벨
-    c.textAlign='left'; c.textBaseline='middle'; c.font='700 15px '+FONT;
-    c.fillStyle='#2a62b8'; c.fillText('저온부',16,G.cy0-6); c.font='600 14px '+FONT; c.fillText('(T₂)',16,G.cy0+14);
-    c.fillStyle='#c9252f'; c.font='700 15px '+FONT; c.fillText('고온부',16,G.cy1+12); c.font='600 14px '+FONT; c.fillText('(T₁)',16,G.cy1+32);
-
-    // 열 화살표
-    var hc='rgba(238,143,18,'+(0.55+0.45*pulse)+')';
-    if(heating){
-      [180,250,320].forEach(function(x){ arrow(c,x,G.cy1+90,x,G.cy1+36,hc,6); });
-      c.fillStyle='#d9780a'; c.font='700 16px '+FONT; c.fillText('열 흡수',16,G.cy1+70);
-    }
-    if(seg===1||seg===2){
-      [128,206,262].forEach(function(x){ arrow(c,x,G.cy0-28,x,G.cy0-74,hc,6); });
-      c.fillStyle='#d9780a'; c.font='700 16px '+FONT; c.fillText('열 방출',16,G.cy0-52);
-    }
-  }
-
-  /* ---------- P-V 그래프 ---------- */
-  var OX=64, OY=392, GW=430, GH=360, VMAX=3.6, PMAX=3.4;
-  function xV(V){ return OX+V/VMAX*GW; }
-  function yP(P){ return OY-P/PMAX*GH; }
-
-  function cyclePath(c){
-    c.beginPath();
-    for(var i=0;i<=40;i++){ var V=V1+(V2-V1)*i/40; var X=xV(V),Y=yP(T1/V); i?c.lineTo(X,Y):c.moveTo(X,Y); }
-    c.lineTo(xV(V2),yP(T2/V2));
-    for(var j=0;j<=40;j++){ var V2_=V2-(V2-V1)*j/40; c.lineTo(xV(V2_),yP(T2/V2_)); }
-    c.closePath();
-  }
-
-  function drawPV(st,seg,now){
-    var c=px; c.setTransform(pc._s,0,0,pc._s,0,0);
-    c.fillStyle='#f9fbfc'; c.fillRect(0,0,PW,PH);
-    var pulse=0.55+0.45*Math.sin(now/260);
-
-    // 넓이
-    cyclePath(c); c.fillStyle= cycles>0 ? 'rgba(215,53,63,0.20)' : 'rgba(215,53,63,0.08)'; c.fill();
-
-    // 축
-    c.strokeStyle='#1d2733'; c.lineWidth=2;
-    arrow(c,OX,OY,OX+GW+16,OY,'#1d2733',2);
-    arrow(c,OX,OY,OX,OY-GH-14,'#1d2733',2);
-    c.fillStyle='#1d2733'; c.font='600 15px '+FONT; c.textBaseline='middle';
-    c.textAlign='left'; c.fillText('압력 P',OX+10,OY-GH-8);
-    c.textAlign='right'; c.fillText('부피 V',OX+GW+14,OY+26);
-    c.textAlign='center'; c.fillText('0',OX-12,OY+14);
-
-    // 부피 눈금
-    c.setLineDash([4,5]); c.strokeStyle='#aab4bf'; c.lineWidth=1.2;
-    [V1,V2].forEach(function(V){ c.beginPath(); c.moveTo(xV(V),OY); c.lineTo(xV(V),yP(V===V1?T1/V1:T1/V2)); c.stroke(); });
-    c.fillStyle='#5b6878'; c.font='600 14px '+FONT;
-    c.fillText('V₁',xV(V1),OY+16); c.fillText('V₂',xV(V2),OY+16);
-
-    // 등온선
-    c.strokeStyle='#8b96a2'; c.lineWidth=1.4;
-    [[T1,'T₁'],[T2,'T₂']].forEach(function(o){
-      c.beginPath();
-      for(var i=0;i<=60;i++){ var V=0.92+(3.45-0.92)*i/60; var X=xV(V),Y=yP(o[0]/V); i?c.lineTo(X,Y):c.moveTo(X,Y); }
-      c.stroke();
-      c.fillStyle='#5b6878'; c.font='italic 600 15px '+FONT; c.textAlign='left';
-      c.fillText(o[1],xV(3.45)+6,yP(o[0]/3.45));
-    });
-    c.setLineDash([]);
-
-    // 전체 순환(흐리게)
-    function drawRange(t0,t1,w,alpha){
-      c.lineWidth=w; c.lineCap='round';
-      var prev=stateAt(t0);
-      for(var tt=t0+0.02; tt<=t1+1e-9; tt+=0.02){
-        var s=stateAt(Math.min(tt,t1));
-        c.strokeStyle=rgb(mix(COLD,HOT,(prev.Tn+s.Tn)/2),alpha);
-        c.beginPath(); c.moveTo(xV(prev.V),yP(prev.P)); c.lineTo(xV(s.V),yP(s.P)); c.stroke();
-        prev=s;
-      }
-    }
-    drawRange(0,4,2.5,0.3);
-    if(t>0) drawRange(0,t,5,1);
-
-    // 진행 방향 화살촉(지나온 구간)
-    [[0.5,0],[1.5,1],[2.5,2],[3.5,3]].forEach(function(m){
-      if(t<m[0]+0.05 && cycles===0) return;
-      var a=stateAt(m[0]-0.03), b=stateAt(m[0]+0.03);
-      var ang=Math.atan2(yP(b.P)-yP(a.P),xV(b.V)-xV(a.V)), X=xV(b.V), Y=yP(b.P);
-      c.fillStyle=rgb(mix(COLD,HOT,b.Tn));
-      c.beginPath(); c.moveTo(X+9*Math.cos(ang),Y+9*Math.sin(ang));
-      c.lineTo(X-7*Math.cos(ang-0.6),Y-7*Math.sin(ang-0.6));
-      c.lineTo(X-7*Math.cos(ang+0.6),Y-7*Math.sin(ang+0.6)); c.closePath(); c.fill();
-    });
-
-    // 상태 번호
-    var pts=[[V1,T1/V1,'①',-18,-14],[V2,T1/V2,'②',18,-14],[V2,T2/V2,'③',18,16],[V1,T2/V1,'④',-18,14]];
-    pts.forEach(function(p,i){
-      var X=xV(p[0]),Y=yP(p[1]);
-      c.fillStyle= i<2 ? '#d7353f' : '#2a62b8';
-      c.beginPath(); c.arc(X,Y,4.5,0,Math.PI*2); c.fill();
-      c.fillStyle='#1d2733'; c.font='700 19px '+FONT; c.textAlign='center';
-      c.fillText(p[2],X+p[3],Y+p[4]);
-    });
-
-    // 열 화살표
-    var hc='rgba(238,143,18,'+(0.55+0.45*pulse)+')';
-    c.font='700 15px '+FONT; c.fillStyle='#d9780a';
-    if(seg===0){ var X=xV(1.8),Y=yP(T1/1.8); arrow(c,X+30,Y-46,X+4,Y-8,hc,5); c.textAlign='left'; c.fillStyle='#d9780a'; c.fillText('열 흡수',X+34,Y-54); }
-    if(seg===1){ var X1=xV(V2),Y1=yP(0.72); arrow(c,X1+6,Y1,X1+46,Y1,hc,5); c.textAlign='right'; c.fillStyle='#d9780a'; c.fillText('열 방출',X1-10,Y1); }
-    if(seg===2){ var X2=xV(1.8),Y2=yP(T2/1.8); arrow(c,X2-4,Y2+8,X2-30,Y2+46,hc,5); c.textAlign='left'; c.fillStyle='#d9780a'; c.fillText('열 방출',X2-14,Y2+58); }
-    if(seg===3){ var X3=xV(V1),Y3=yP(2.25); arrow(c,X3-48,Y3,X3-6,Y3,hc,5); c.textAlign='right'; c.fillStyle='#d9780a'; c.fillText('열 흡수',X3-8,Y3-18); }
-
-    if(cycles>0){
-      c.fillStyle='#9e1f28'; c.font='700 16px '+FONT; c.textAlign='center';
-      c.fillText('열기관이 한 일',xV(1.95),yP(1.15));
-    }
-
-    // 현재 상태 점
-    var X0=xV(st.V), Y0=yP(st.P);
-    c.fillStyle='#ffffff'; c.beginPath(); c.arc(X0,Y0,10,0,Math.PI*2); c.fill();
-    c.fillStyle=rgb(mix(COLD,HOT,st.Tn)); c.beginPath(); c.arc(X0,Y0,7,0,Math.PI*2); c.fill();
-  }
-
-  /* ---------- 설명 패널 ---------- */
-  var lastKey='';
-  function updateInfo(st,seg){
-    var showSum = cycles>0 && (playing || (!isMoving() && Math.round(t)===4));
-    var key=seg+'|'+showSum;
-    if(key!==lastKey){
-      lastKey=key;
-      var titleEl=document.getElementById('title'), descEl=document.getElementById('desc');
-      var law=document.getElementById('law'), eq=document.getElementById('eq');
-      if(seg<0){
-        titleEl.textContent=INTRO.title; descEl.textContent=INTRO.desc;
-        law.style.display='none'; eq.textContent='';
-      } else {
-        var S=STEPS[seg];
-        titleEl.textContent=S.title; descEl.textContent=S.desc;
-        law.style.display='';
-        [['q',S.q],['w',S.w],['u',S.u]].forEach(function(o){
-          var el=document.getElementById(o[0]); el.textContent=o[1][0]; el.style.color=o[1][1]||'';
-        });
-        eq.textContent=S.eq;
-      }
-      document.getElementById('summary').classList.toggle('show',showSum);
-      document.querySelectorAll('.step').forEach(function(b){ b.classList.toggle('on',+b.dataset.i===seg); });
-    }
-    var vf=st.V/V2, pf=st.P/(T1/V1), tf=st.T/T1;
-    var setBar=function(id,f,col){ var e=document.getElementById(id); e.style.width=(f*100).toFixed(1)+'%'; e.style.background=col; };
-    var tc=rgb(mix(COLD,HOT,st.Tn));
-    setBar('mV',vf,'#6b7a8c'); setBar('mP',pf,'#6b7a8c'); setBar('mT',tf,tc);
-    document.getElementById('tV').textContent = st.p<0.01?'V₁ (작음)':(st.p>0.99?'V₂ (큼)':'변하는 중');
-    document.getElementById('tP').textContent = '①의 '+(st.P/(T1/V1)*100).toFixed(0)+'%';
-    document.getElementById('tT').textContent = st.Tn>0.99?'T₁ (고온)':(st.Tn<0.01?'T₂ (저온)':'변하는 중');
-    document.getElementById('play').textContent = playing?'멈춤':'자동 재생';
-  }
-
-  /* ---------- 루프 ---------- */
-  var last=performance.now();
-  function frame(now){
-    var dt=Math.min(0.05,(now-last)/1000); last=now;
-    if(playing){
-      t+=dt*speed/SEG_DUR;
-      if(t>=4){ t-=4; cycles++; }
-    } else if(target!==null){
-      t+=dt*speed/SEG_DUR;
-      if(t>=target){ t=target; target=null; if(t>=4) cycles++; }
-    }
-    var st=stateAt(t), seg=infoSeg();
-    moveParts(st,dt);
-    drawEngine(st,seg,now);
-    drawPV(st,seg,now);
-    updateInfo(st,seg);
-    requestAnimationFrame(frame);
-  }
-  fitAll();
-  requestAnimationFrame(frame);
-})();
-</script>
-</body>
-</html>
+let last=performance.now();
+function loop(now){
+ const dt=Math.max(0,Math.min((now-last)/1000,0.05));last=now;
+ if(playing){t+=dt*speed/SEG_DUR;if(t>=4){t-=4;cycles++}}
+ else if(target!==null){t+=dt*speed/SEG_DUR;if(t>=target){t=target;target=null;if(t>=4)cycles++}}
+ const st=stateAt(t),seg=infoSeg();
+ moveParts(st,dt);
+ c.fillStyle=BG;c.fillRect(0,0,VW,VH);
+ drawEngine(st,seg,now);drawPV(st,seg,now);drawUI(seg,now);
+ requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script></body></html>
