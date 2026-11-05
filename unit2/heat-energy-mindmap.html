@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>열과 에너지 마인드맵 완성하기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBF5E6; --panel:#FFFDF7; --ink:#3B2F4A; --muted:#857A93;
+  --coral:#EF7466; --coral-ink:#FFFFFF; --butter:#F7D774; --butter-ink:#3B2F4A;
+  --lav:#9B7FD1; --lav-soft:#F1EBFC; --line:#7A6690;
+  --kw-bg:#DDF2E4; --kw-bd:#6DB98C; --d-bg:#EFE8FC; --d-bd:#A58BD8; --fx-bg:#FDE4D8; --fx-bd:#E9927A;
+  --ex-a:#FFF1C9; --ex-b:#DDF2E4; --ex-c:#FBE3DA;
+  --bad:#D9483B; --good:#3E9B67; --tray:#F4EAD6; --shadow:rgba(80,55,40,.16);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1E1924; --panel:#28222F; --ink:#F2ECF7; --muted:#A99DB6;
+    --coral:#E0665A; --butter:#E2C15A; --lav:#B49BE6; --lav-soft:#332A40; --line:#B6A4C9;
+    --kw-bg:#22402F; --kw-bd:#5FAE80; --d-bg:#3A2F52; --d-bd:#9C84D6; --fx-bg:#4A2D25; --fx-bd:#D98468;
+    --ex-a:#4A3F22; --ex-b:#22402F; --ex-c:#4A2D25;
+    --bad:#FF7A6E; --good:#6FD39A; --tray:#2E2736; --shadow:rgba(0,0,0,.45);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1E1924; --panel:#28222F; --ink:#F2ECF7; --muted:#A99DB6;
+  --coral:#E0665A; --butter:#E2C15A; --lav:#B49BE6; --lav-soft:#332A40; --line:#B6A4C9;
+  --kw-bg:#22402F; --kw-bd:#5FAE80; --d-bg:#3A2F52; --d-bd:#9C84D6; --fx-bg:#4A2D25; --fx-bd:#D98468;
+  --ex-a:#4A3F22; --ex-b:#22402F; --ex-c:#4A2D25;
+  --bad:#FF7A6E; --good:#6FD39A; --tray:#2E2736; --shadow:rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+button,input,textarea{font:inherit;color:inherit}
+.wrap{max-width:1600px;margin:0 auto;padding:18px 20px 0}
+
+/* 머리 */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
+h1{font-family:"Jua","Gowun Dodum",sans-serif;font-weight:400;font-size:clamp(26px,3.4vw,38px);line-height:1.15;margin:0;flex:1 1 auto}
+.who{display:flex;gap:10px;align-items:center}
+.who label{display:flex;align-items:center;gap:6px;font-size:15px;color:var(--muted)}
+.who input{width:84px;border:0;border-bottom:2px dashed var(--lav);background:transparent;padding:2px 4px;color:var(--ink)}
+.who input.name{width:96px}
+.who input:focus{outline:none;border-bottom-style:solid}
+.status{display:flex;align-items:center;gap:10px}
+.prog{font-family:"Jua",sans-serif;font-size:18px;background:var(--butter);color:var(--butter-ink);border-radius:999px;padding:4px 14px;white-space:nowrap}
+.miss{font-size:14px;color:var(--muted);white-space:nowrap}
+.reset{border:2px solid var(--coral);color:var(--coral);background:transparent;border-radius:999px;padding:4px 14px;cursor:pointer;font-family:"Jua",sans-serif;font-size:16px}
+.reset:hover{background:var(--coral);color:var(--coral-ink)}
+.steps{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px;padding:0;list-style:none}
+.steps li{border:2px solid var(--lav-soft);border-radius:999px;padding:3px 14px;font-size:15px;color:var(--muted);font-family:"Jua",sans-serif}
+.steps li.now{border-color:var(--coral);background:var(--coral);color:var(--coral-ink)}
+.steps li.ok{border-color:var(--good);color:var(--good)}
+.guide{margin:8px 0 14px;color:var(--muted);font-size:15px;max-width:78ch}
+
+/* 마인드맵 */
+.map{position:relative}
+.links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.links path{fill:none;stroke:var(--line);stroke-width:2.4;stroke-linecap:round;stroke-dasharray:1 7;opacity:.85}
+.row{display:flex;gap:18px;position:relative;z-index:1}
+.row{margin-top:14px}
+.row .unit{flex:1 1 0}
+.hub{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;flex:0 0 118px}
+.center{font-family:"Jua",sans-serif;font-size:clamp(22px,2.4vw,28px);color:var(--coral-ink);background:var(--coral);padding:20px 14px;text-align:center;line-height:1.15;border-radius:50%/50%;box-shadow:0 5px 0 rgba(150,50,40,.25);transform:rotate(-2deg)}
+.unit{background:var(--panel);border:2px solid var(--lav-soft);border-radius:22px;padding:30px 10px 12px;position:relative;margin-top:16px;min-width:0}
+.pill{position:absolute;top:-17px;left:50%;transform:translateX(-50%);background:var(--butter);color:var(--butter-ink);font-family:"Jua",sans-serif;font-size:19px;padding:5px 18px;border-radius:999px;white-space:nowrap;box-shadow:0 3px 0 rgba(150,110,20,.2)}
+.slots{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(112px,1fr))}
+.slot{display:flex;flex-direction:column;gap:6px;min-width:0}
+.drop{border:2px dashed var(--lav);border-radius:14px;min-height:54px;display:flex;align-items:center;justify-content:center;padding:4px;background:transparent;transition:background-color .15s,border-color .15s;position:relative}
+.drop.fx{min-height:44px;border-style:dotted;border-radius:10px}
+.drop.ds{min-height:70px;border-radius:10px;border-style:dashed;border-width:1.5px}
+.drop.ds .card{min-height:66px;font-size:12.5px}
+.drop .ph{color:var(--muted);font-size:14px;pointer-events:none}
+.drop.locked{opacity:.45}
+.drop.none{border-style:solid;border-color:transparent;background:var(--lav-soft);opacity:.8}
+.drop.none .ph{font-size:13px}
+.drop.filled{border-color:transparent;padding:0}
+body.drag-k .drop.kw:not(.filled),body.drag-d .drop.ds:not(.filled):not(.locked):not(.none),body.drag-f .drop.fx:not(.filled):not(.locked):not(.none){background:var(--lav-soft)}
+.drop.over{border-style:solid;background:var(--lav-soft)}
+.drop.nope{animation:nope .38s}
+@keyframes nope{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.desc{width:100%;min-height:40px;resize:vertical;border:1.5px solid var(--lav-soft);border-radius:10px;background:transparent;padding:6px 8px;font-size:13.5px;line-height:1.4;color:var(--ink)}
+.desc::placeholder{color:var(--muted)}
+.desc:focus{outline:none;border-color:var(--lav)}
+
+/* 예시(01단원) */
+.ex .kwbox{border-radius:14px;padding:10px 6px;text-align:center;font-family:"Jua",sans-serif;font-size:19px;line-height:1.2;min-height:54px;display:flex;flex-direction:column;justify-content:center}
+.ex .kwbox small{font-family:"Gowun Dodum",sans-serif;font-size:12px;color:var(--muted)}
+.ex:nth-child(1) .kwbox{background:var(--ex-a)}
+.ex:nth-child(2) .kwbox{background:var(--ex-b)}
+.ex:nth-child(3) .kwbox{background:var(--ex-c)}
+.ex p{margin:0;font-size:13.5px;line-height:1.45;text-align:center;padding:4px 2px}
+.extag{position:absolute;top:8px;right:12px;font-size:12px;color:var(--muted)}
+.exuse{margin-top:10px;text-align:center;font-size:13.5px;color:var(--muted);border-top:1.5px dashed var(--lav-soft);padding-top:8px}
+
+/* 카드 */
+.card{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;padding:8px 10px;min-height:44px;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;border:2px solid;line-height:1.25;box-shadow:0 2px 0 var(--shadow)}
+.card.k{background:var(--kw-bg);border-color:var(--kw-bd);font-family:"Jua",sans-serif;font-size:17px}
+.card.d{background:var(--d-bg);border-color:var(--d-bd);font-size:13.5px;line-height:1.35;text-align:left;justify-content:flex-start;padding:7px 10px}
+.card.f{background:var(--fx-bg);border-color:var(--fx-bd);font-size:15px;font-weight:700;font-family:"Gowun Dodum",sans-serif}
+.card sub{font-size:.72em}
+.card .lbl{word-break:keep-all;overflow-wrap:anywhere}
+.card:focus-visible{outline:3px solid var(--lav);outline-offset:2px}
+.card.sel{outline:3px solid var(--coral);outline-offset:2px}
+.card.lifting{opacity:.35}
+.card.bounce{animation:nope .38s}
+.drop .card{width:100%;min-height:50px;box-shadow:none;cursor:grab}
+.drop.fx .card{min-height:40px;font-size:13.5px}
+.drop .card.pop{animation:pop .32s ease-out}
+@keyframes pop{0%{transform:scale(.8)}70%{transform:scale(1.06)}100%{transform:scale(1)}}
+.x{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;border:0;background:var(--ink);color:var(--paper);font-size:13px;line-height:22px;padding:0;cursor:pointer;display:none}
+.drop .card .x{display:block}
+.ghost{position:fixed;left:0;top:0;z-index:50;pointer-events:none;opacity:.95;box-shadow:0 10px 24px var(--shadow);transform-origin:center}
+
+/* 카드 보관함 */
+.tray{position:sticky;bottom:0;z-index:5;margin-top:22px;background:var(--tray);border-radius:22px 22px 0 0;padding:12px 16px 14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));max-height:40vh;overflow:auto;box-shadow:0 -6px 18px var(--shadow)}
+.tray h2{font-family:"Jua",sans-serif;font-weight:400;font-size:17px;margin:2px 0 8px;display:flex;align-items:baseline;gap:10px}
+.tray h2 span{font-family:"Gowun Dodum",sans-serif;font-size:13px;color:var(--muted)}
+.deck{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;min-height:20px}
+.deck .card.k{min-width:118px}
+.deck .card.f{min-width:118px}
+.deck .empty{color:var(--muted);font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(42vh + 10px);transform:translate(-50%,10px);background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:999px;font-size:15px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:60;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.bad{background:var(--bad);color:#fff}
+.done{display:none;margin:14px 0 0;background:var(--good);color:#fff;border-radius:16px;padding:12px 18px;font-family:"Jua",sans-serif;font-size:20px;text-align:center}
+.done.show{display:block}
+
+.board{display:block}
+@media (min-width:1100px){
+  .board{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:20px;align-items:start}
+  .tray{position:sticky;top:calc(12px + env(safe-area-inset-top,0px));bottom:auto;margin-top:16px;border-radius:22px;max-height:calc(100vh - 24px - env(safe-area-inset-top,0px));padding-bottom:14px}
+  .deck{display:grid;grid-template-columns:1fr 1fr}
+  .deck .card.k,.deck .card.f{min-width:0}
+  .deck .card.wide,.deck .card.d{grid-column:span 2}
+  .toast{bottom:24px}
+  .wrap{padding-bottom:20px}
+}
+@media (max-width:860px){
+  .row{flex-direction:column;gap:6px}
+  .links{display:none}
+  .hub{order:-1}
+  .slots{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+  .tray{max-height:46vh}
+  .toast{bottom:calc(48vh + 10px)}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+.card.static{cursor:default;box-shadow:none}
+.drop.ds .card{min-height:66px;font-size:14.5px;line-height:1.4}
+.card.d{font-size:16px;line-height:1.4}
+.done{align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
+.done.show{display:flex}
+.shot{border:0;border-radius:999px;background:var(--butter);color:var(--butter-ink);font-family:"Jua",sans-serif;font-size:18px;padding:7px 20px;cursor:pointer}
+.shot:hover{filter:brightness(1.05)}
+.shot:focus-visible,.ghostbtn:focus-visible{outline:3px solid var(--lav);outline-offset:2px}
+.caphead{display:none;padding:6px 4px 14px}
+.capt{font-family:"Jua",sans-serif;font-size:34px;line-height:1.2}
+.capstats{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:8px;font-size:17px}
+.capstats span{background:var(--panel);border:2px solid var(--lav-soft);border-radius:999px;padding:3px 14px}
+.capstats b{font-family:"Jua",sans-serif;font-weight:400;color:var(--coral);font-size:19px}
+body.capturing .caphead{display:block}
+body.capturing .x,body.capturing .toast{display:none!important}
+body.capturing #capture{padding:22px;background:var(--paper)}
+.modal{position:fixed;inset:0;z-index:80;background:rgba(30,20,40,.45);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal[hidden]{display:none}
+.sheet{background:var(--panel);color:var(--ink);border-radius:22px;padding:22px 24px;width:min(380px,100%);box-shadow:0 18px 40px var(--shadow)}
+.sheet h2{font-family:"Jua",sans-serif;font-weight:400;font-size:24px;margin:0 0 12px}
+.rec{margin:0 0 14px;display:grid;gap:8px}
+.rec div{display:flex;justify-content:space-between;align-items:baseline;background:var(--lav-soft);border-radius:12px;padding:8px 14px}
+.rec dt{color:var(--muted);font-size:15px}
+.rec dd{margin:0;font-size:16px}
+.rec b{font-family:"Jua",sans-serif;font-weight:400;font-size:22px;color:var(--coral)}
+.sidin{display:flex;align-items:center;gap:10px;font-family:"Jua",sans-serif;font-size:18px}
+.sidin input{flex:1;min-width:0;border:2px solid var(--lav);border-radius:12px;padding:8px 12px;font-size:18px;background:transparent;color:var(--ink)}
+.sidin input:focus{outline:none;border-color:var(--coral)}
+.merr{min-height:20px;margin:6px 0 0;color:var(--bad);font-size:14px}
+.mbtns{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
+.ghostbtn{border:2px solid var(--lav-soft);background:transparent;border-radius:999px;padding:6px 16px;cursor:pointer;font-size:16px}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>열과 에너지 마인드맵 완성하기</h1>
+    <div class="status">
+      <span class="prog"><span id="cnt">0</span> / <span id="tot">38</span> 칸</span>
+      <span class="miss">다시 생각한 횟수 <b id="miss">0</b></span>
+      <button class="reset" id="reset" type="button">처음부터 다시</button>
+    </div>
+  </header>
+  <ol class="steps" id="steps"><li data-s="1">1. 키워드 놓기</li><li data-s="2">2. 설명 놓기</li><li data-s="3">3. 식 놓기</li></ol>
+  <p class="guide" id="guide"></p>
+
+  <div class="board">
+  <div class="mapcol">
+  <div id="capture">
+  <div class="caphead" id="caphead">
+    <div class="capt">열과 에너지 마인드맵 완성하기</div>
+    <div class="capstats"><span>학번 <b id="cSid"></b></span><span>다시 생각한 횟수 <b id="cMiss"></b>번</span><span>완성 시간 <b id="cTime"></b></span><span id="cDate"></span></div>
+  </div>
+  <div class="map" id="map">
+    <svg class="links" id="links" aria-hidden="true"></svg>
+    <div class="row ra">
+      <section class="unit" id="u2"><div class="pill" data-pill>02. 열에 의한 물질의 변화</div><div class="slots" style="--n:5"></div></section>
+      <section class="unit" id="u3"><div class="pill" data-pill>03. 열역학 제1법칙</div><div class="slots" style="--n:5"></div></section>
+    </div>
+    <div class="row rb">
+      <section class="unit" id="u1">
+        <div class="pill" data-pill>01. 단열과 열팽창</div>
+        <span class="extag">예시</span>
+        <div class="slots" style="--n:3">
+          <div class="slot"><div class="drop kw filled"><div class="card k static"><span class="lbl">열전달</span></div></div><div class="drop ds filled"><div class="card d static"><span class="lbl">열이 이동하는 방법: 전도, 대류, 복사</span></div></div><div class="drop fx none"><span class="ph">식 없음</span></div></div>
+          <div class="slot"><div class="drop kw filled"><div class="card k static"><span class="lbl">단열</span></div></div><div class="drop ds filled"><div class="card d static"><span class="lbl">열전달을 막는 것</span></div></div><div class="drop fx none"><span class="ph">식 없음</span></div></div>
+          <div class="slot"><div class="drop kw filled"><div class="card k static"><span class="lbl">열팽창</span></div></div><div class="drop ds filled"><div class="card d static"><span class="lbl">길이가 길수록, 온도 변화가 클수록 늘어난 길이↑</span></div></div><div class="drop fx none"><span class="ph">식 없음</span></div></div>
+        </div>
+        <div class="exuse">열에너지 관련 기술에 활용</div>
+      </section>
+      <div class="hub"><div class="center" id="center">열과<br>에너지</div></div>
+      <section class="unit" id="u4"><div class="pill" data-pill>04. 열기관과 열효율</div><div class="slots" style="--n:3"></div></section>
+    </div>
+  </div>
+
+  </div>
+  <div class="done" id="done"><span>완성! 키워드, 설명, 식을 모두 제자리에 놓았어요.</span><button type="button" class="shot" id="shot">사진으로 저장</button></div>
+  </div>
+
+  <section class="tray" id="tray" aria-label="카드 보관함">
+    <h2 id="deckTitle">키워드 카드</h2>
+    <div class="deck" id="deck"></div>
+  </section>
+  </div>
+</div>
+<div class="modal" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <h2 id="mTitle">완성 기록</h2>
+    <dl class="rec">
+      <div><dt>다시 생각한 횟수</dt><dd><b id="mMiss">0</b>번</dd></div>
+      <div><dt>완성하는 데 걸린 시간</dt><dd><b id="mTime">-</b></dd></div>
+    </dl>
+    <label class="sidin">학번 <input id="mSid" inputmode="numeric" autocomplete="off" placeholder="예: 2320"></label>
+    <p class="merr" id="mErr"></p>
+    <div class="mbtns"><button type="button" class="ghostbtn" id="mClose">닫기</button><button type="button" class="shot" id="mSave">이미지로 저장</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  // 정답 기준: 교과서 '열과 에너지' 단원 마인드맵 (Ⅱ-01~04)
+  const KW = [
+    {id:'k_p',   t:'압력(P)',        u:2, d:'d_p',   f:'f_p'},
+    {id:'k_ig',  t:'이상 기체 법칙',  u:2, d:'d_ig',  f:'f_ig'},
+    {id:'k_bc',  t:'보일·샤를 법칙',  u:2, d:'d_bc',  f:'f_bc'},
+    {id:'k_l',   t:'잠열(L)',        u:2, d:'d_l',   f:'f_l'},
+    {id:'k_c',   t:'비열(c)',        u:2, d:'d_c',   f:'f_c'},
+    {id:'k_1st', t:'열역학 제1법칙',  u:3, d:'d_1st', f:'f_1st'},
+    {id:'k_u',   t:'내부 에너지',     u:3, d:'d_u',   f:'f_u'},
+    {id:'k_isp', t:'등압 과정',       u:3, d:'d_isp', f:'f_isp'},
+    {id:'k_isv', t:'등적 과정',       u:3, d:'d_isv', f:'f_isv'},
+    {id:'k_ist', t:'등온 과정',       u:3, d:'d_ist', f:'f_ist'},
+    {id:'k_eng', t:'열기관',         u:4, d:'d_eng', f:null},
+    {id:'k_eff', t:'열효율',         u:4, d:'d_eff', f:'f_eff'},
+    {id:'k_car', t:'카르노 기관',     u:4, d:'d_car', f:'f_car'}
+  ];
+  const DS = [
+    {id:'d_p',   h:'단위 넓이당 가하는 힘'},
+    {id:'d_ig',  h:'보일·샤를 법칙에 기체 상수 R과 기체의 양(n mol)을 적용해 나타낸 법칙'},
+    {id:'d_bc',  h:'기체의 부피(V), 압력(P), 온도(T) 사이의 관계를 정리한 법칙'},
+    {id:'d_l',   h:'물질의 상태 변화에 필요한 단위 질량당 열량'},
+    {id:'d_c',   h:'물질 1 kg의 온도를 1 K 높이는 데 필요한 열량'},
+    {id:'d_1st', h:'기체가 흡수한 열에너지(Q)는 기체의 내부 에너지 변화량(ΔU)과 기체가 외부에 한 일(W)의 합과 같다.'},
+    {id:'d_u',   h:'기체 분자들이 가지고 있는 운동 에너지와 위치 에너지의 총합'},
+    {id:'d_isp', h:'기체의 압력이 일정하게 유지되는 열역학 과정'},
+    {id:'d_isv', h:'기체의 부피가 일정하게 유지되는 열역학 과정'},
+    {id:'d_ist', h:'기체의 온도가 일정하게 유지되는 열역학 과정'},
+    {id:'d_eng', h:'열에너지를 역학적 일로 바꿔 주는 장치'},
+    {id:'d_eff', h:'공급한 열에너지에 대한 외부에 한 일의 비율'},
+    {id:'d_car', h:'이상 기체를 사용하고 열효율이 가장 높은 이상적인 열기관'}
+  ];
+  const FX = [
+    {id:'f_p',   h:'P = F/A'},
+    {id:'f_ig',  h:'PV = nRT'},
+    {id:'f_bc',  h:'PV/T = 일정'},
+    {id:'f_l',   h:'Q = Lm'},
+    {id:'f_c',   h:'Q = cmΔT'},
+    {id:'f_1st', h:'Q = ΔU + W'},
+    {id:'f_u',   h:'U = E<sub>P</sub> + E<sub>K</sub>'},
+    {id:'f_isp', h:'W = PΔV'},
+    {id:'f_isv', h:'Q = ΔU'},
+    {id:'f_ist', h:'Q = W'},
+    {id:'f_eff', h:'e = W/Q<sub>H</sub> = 1 − Q<sub>L</sub>/Q<sub>H</sub>'},
+    {id:'f_car', h:'e<sub>카르노</sub> = 1 − Q<sub>2</sub>/Q<sub>1</sub> = 1 − T<sub>2</sub>/T<sub>1</sub>'}
+  ];
+  const UNIT_SLOTS = {2:5, 3:5, 4:3};
+  const ROLE = {k:'kw', d:'ds', f:'fx'};          // 카드 종류 → 칸 이름
+  const PAIR = {d:'d', f:'f'};                     // 키워드의 짝 필드
+  const NAME = {k:'키워드', d:'설명', f:'식'};
+  const byId = {};
+  KW.forEach(x=>byId[x.id]={...x,type:'k'}); DS.forEach(x=>byId[x.id]={...x,type:'d'}); FX.forEach(x=>byId[x.id]={...x,type:'f'});
+  const TOTAL = KW.length + DS.length + FX.length;
+  const KEY = 'heat-energy-mindmap-v3';
+  const GUIDE = {
+    1:'1단계: 키워드 카드를 알맞은 단원의 빈 칸에 끌어다 놓으세요. 다른 단원 칸에는 들어가지 않아요.',
+    2:'2단계: 설명 카드를 그 뜻에 맞는 키워드 바로 아래 칸에 놓으세요.',
+    3:'3단계: 식 카드를 관련된 키워드의 맨 아래 ‘식’ 칸에 놓으세요.',
+    4:'다 채웠어요. 넣은 카드는 ✕를 누르거나 카드 보관함으로 끌어내면 다시 뺄 수 있어요.'
+  };
+
+  let state = fresh();
+  function fresh(){
+    const s = {slots:{}, miss:0, sid:'', startAt:null, endAt:null};
+    Object.entries(UNIT_SLOTS).forEach(([u,n])=>{for(let i=0;i<n;i++) s.slots[u+'-'+i]={k:null,d:null,f:null};});
+    s.order = {k:shuffle(KW.map(x=>x.id)), d:shuffle(DS.map(x=>x.id)), f:shuffle(FX.map(x=>x.id))};
+    return s;
+  }
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function load(){
+    try{const raw=localStorage.getItem(KEY); if(raw){const s=JSON.parse(raw); if(s&&s.slots&&s.order&&Object.keys(s.slots).length===13) state=s;}}catch(e){}
+  }
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+
+  const $ = s=>document.querySelector(s);
+  const deck=$('#deck');
+
+  Object.entries(UNIT_SLOTS).forEach(([u,n])=>{
+    const box = document.querySelector('#u'+u+' .slots');
+    for(let i=0;i<n;i++){
+      const key=u+'-'+i;
+      const slot=document.createElement('div'); slot.className='slot';
+      slot.innerHTML=`<div class="drop kw" data-key="${key}" data-role="kw" data-unit="${u}"></div>
+        <div class="drop ds" data-key="${key}" data-role="ds"></div>
+        <div class="drop fx" data-key="${key}" data-role="fx"></div>`;
+      box.appendChild(slot);
+    }
+  });
+
+  function cardEl(id, pop){
+    const c=byId[id]; const el=document.createElement('div');
+    el.className='card '+c.type+(pop?' pop':'')+((id==='f_eff'||id==='f_car')?' wide':'');
+    el.dataset.id=id; el.tabIndex=0; el.setAttribute('role','button');
+    el.innerHTML='<span class="lbl">'+(c.type==='k'?esc(c.t):c.h)+'</span><button class="x" type="button" aria-label="보관함으로 돌려보내기">✕</button>';
+    el.setAttribute('aria-label', NAME[c.type]+' 카드: '+el.querySelector('.lbl').textContent);
+    return el;
+  }
+  function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+  function whereIs(id){const t=byId[id].type; for(const [k,s] of Object.entries(state.slots)){if(s[t]===id) return k;} return null;}
+  function placedSet(){const p=new Set(); Object.values(state.slots).forEach(s=>['k','d','f'].forEach(t=>{if(s[t])p.add(s[t]);})); return p;}
+  function stage(){
+    const p=placedSet();
+    if(KW.some(x=>!p.has(x.id))) return 1;
+    if(DS.some(x=>!p.has(x.id))) return 2;
+    if(FX.some(x=>!p.has(x.id))) return 3;
+    return 4;
+  }
+
+  let justPlaced=null, lastStage=null;
+  function render(){
+    const st=stage();
+    document.querySelectorAll('.drop[data-key]').forEach(el=>{
+      const s=state.slots[el.dataset.key]; const role=el.dataset.role;
+      const t = role==='kw'?'k':role==='ds'?'d':'f';
+      el.innerHTML=''; el.classList.remove('filled','locked','none');
+      if(s[t]){el.classList.add('filled'); el.appendChild(cardEl(s[t], justPlaced===s[t])); return;}
+      if(t==='k'){el.innerHTML='<span class="ph">+ 키워드</span>'; return;}
+      const need = t==='d'?2:3;
+      if(st<need || !s.k){el.classList.add('locked'); el.innerHTML=`<span class="ph">${NAME[t]}</span>`; return;}
+      if(byId[s.k][PAIR[t]]===null){el.classList.add('none'); el.innerHTML=`<span class="ph">${NAME[t]} 없음</span>`; return;}
+      el.innerHTML=`<span class="ph">+ ${NAME[t]}</span>`;
+    });
+    const p=placedSet();
+    const t = st===1?'k':st===2?'d':'f';
+    deck.innerHTML='';
+    if(st<4){
+      $('#deckTitle').textContent=NAME[t]+' 카드';
+      state.order[t].filter(id=>!p.has(id)).forEach(id=>deck.appendChild(cardEl(id)));
+    }else{
+      $('#deckTitle').textContent='카드 보관함';
+      deck.innerHTML='<span class="empty">모든 카드를 제자리에 놓았어요.</span>';
+    }
+    document.querySelectorAll('#steps li').forEach(li=>{const n=+li.dataset.s; li.classList.toggle('now',n===st); li.classList.toggle('ok',n<st);});
+    $('#guide').textContent=GUIDE[st];
+    $('#cnt').textContent=p.size; $('#tot').textContent=TOTAL; $('#miss').textContent=state.miss;
+    $('#done').classList.toggle('show', st===4);
+    if(lastStage!==null && st>lastStage){
+      if(st===2) toast('키워드 완성! 이제 설명 카드를 놓아 보세요');
+      else if(st===3) toast('설명 완성! 마지막으로 식 카드를 놓아 보세요');
+      else if(st===4) toast('모두 완성했어요!');
+    }
+    lastStage=st; justPlaced=null; selected=null;
+    requestAnimationFrame(drawLinks);
+  }
+
+  let toastTimer;
+  function toast(msg,bad){const t=$('#toast'); t.textContent=msg; t.classList.toggle('bad',!!bad); t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),1800);}
+  function shake(el){if(!el)return; el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope');}
+  function wrong(drop,msg){state.miss++; save(); $('#miss').textContent=state.miss; shake(drop); toast(msg,true);}
+
+  function tryPlace(id, drop){
+    const c=byId[id]; const t=c.type; const key=drop.dataset.key; const role=drop.dataset.role; const s=state.slots[key];
+    const from=whereIs(id);
+    if(from===key && ROLE[t]===role) return;
+    if(role!==ROLE[t]){shake(drop); toast(t==='k'?'키워드 카드는 맨 위 칸에 놓아요':t==='d'?'설명 카드는 키워드 바로 아래 칸에 놓아요':'식 카드는 맨 아래 ‘식’ 칸에 놓아요'); return;}
+    if(s[t]){shake(drop); toast('이미 채워진 칸이에요'); return;}
+    if(t==='k'){
+      if(String(c.u)!==drop.dataset.unit){wrong(drop,'이 단원에 들어갈 개념이 아니에요'); return;}
+      let carry={d:null,f:null};
+      if(from){const o=state.slots[from]; carry={d:o.d,f:o.f}; o.k=null; o.d=null; o.f=null;}
+      s.k=id; s.d=carry.d; s.f=carry.f;
+    }else{
+      if(!s.k){shake(drop); toast('먼저 위 칸에 키워드를 넣어 주세요'); return;}
+      const want=byId[s.k][PAIR[t]];
+      if(want!==id){wrong(drop, want===null?`이 개념에는 짝지을 ${NAME[t]}이 없어요`:`이 키워드와 맞는 ${NAME[t]}이 아니에요`); return;}
+      if(from) state.slots[from][t]=null;
+      s[t]=id;
+    }
+    if(!state.startAt) state.startAt=Date.now();
+    justPlaced=id;
+    if(placedSet().size===TOTAL && !state.endAt) state.endAt=Date.now();
+    save(); render(); if(stage()===lastStage) toast('딱 맞아요!');
+  }
+  function sendBack(id){
+    const key=whereIs(id); if(!key) return;
+    const s=state.slots[key]; const t=byId[id].type;
+    if(t==='k'){s.k=null; s.d=null; s.f=null;} else s[t]=null;
+    save(); render();
+  }
+
+  let drag=null, selected=null;
+  function clearSel(){document.querySelectorAll('.card.sel').forEach(c=>c.classList.remove('sel')); selected=null;}
+  document.addEventListener('pointerdown',e=>{
+    if(e.button>0) return;
+    const c=e.target.closest('.card'); if(!c||c.classList.contains('static')||e.target.closest('.x')) return;
+    e.preventDefault();
+    drag={id:c.dataset.id, el:c, x0:e.clientX, y0:e.clientY, moved:false, ghost:null, over:null};
+    try{c.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  document.addEventListener('pointermove',e=>{
+    if(!drag) return;
+    const dx=e.clientX-drag.x0, dy=e.clientY-drag.y0;
+    if(!drag.moved){
+      if(Math.hypot(dx,dy)<6) return;
+      drag.moved=true; clearSel();
+      const r=drag.el.getBoundingClientRect(); const g=drag.el.cloneNode(true);
+      g.classList.add('ghost'); g.classList.remove('pop'); g.style.width=r.width+'px'; g.style.height=r.height+'px';
+      drag.offX=drag.x0-r.left; drag.offY=drag.y0-r.top;
+      document.body.appendChild(g); drag.ghost=g; drag.el.classList.add('lifting');
+      document.body.classList.add('drag-'+byId[drag.id].type);
+    }
+    if(e.clientY<70) window.scrollBy(0,-14); else if(e.clientY>innerHeight-40) window.scrollBy(0,14);
+    drag.ghost.style.transform=`translate(${e.clientX-drag.offX}px,${e.clientY-drag.offY}px) rotate(-3deg)`;
+    const under=document.elementFromPoint(e.clientX,e.clientY);
+    const d=under&&under.closest('.drop');
+    if(drag.over!==d){if(drag.over)drag.over.classList.remove('over'); if(d)d.classList.add('over'); drag.over=d;}
+  });
+  function endDrag(e,cancel){
+    if(!drag) return;
+    const dg=drag; drag=null;
+    document.body.classList.remove('drag-k','drag-d','drag-f');
+    if(dg.over) dg.over.classList.remove('over');
+    if(dg.moved){
+      dg.ghost.remove(); dg.el.classList.remove('lifting');
+      if(cancel) return;
+      const under=document.elementFromPoint(e.clientX,e.clientY);
+      const drop=under&&under.closest('.drop');
+      if(drop) tryPlace(dg.id, drop);
+      else if(whereIs(dg.id) && under && under.closest('#tray')) sendBack(dg.id);
+      else if(!whereIs(dg.id)){dg.el.classList.add('bounce'); setTimeout(()=>dg.el.classList.remove('bounce'),400);}
+    }else if(!cancel){
+      if(selected===dg.id) clearSel();
+      else{clearSel(); selected=dg.id; dg.el.classList.add('sel'); toast('넣을 칸을 눌러 주세요');}
+    }
+  }
+  document.addEventListener('pointerup',e=>endDrag(e,false));
+  document.addEventListener('pointercancel',e=>endDrag(e,true));
+
+  document.addEventListener('click',e=>{
+    const x=e.target.closest('.x');
+    if(x){const c=x.closest('.card'); if(c) sendBack(c.dataset.id); return;}
+    if(e.target.closest('.card')) return;
+    if(e.target.closest('.static')||e.target.closest('#u1')) return;
+    const drop=e.target.closest('.drop');
+    if(drop && selected){const id=selected; clearSel(); tryPlace(id,drop); return;}
+    if(selected && e.target.closest('#tray') && whereIs(selected)){const id=selected; clearSel(); sendBack(id);}
+  });
+  document.addEventListener('keydown',e=>{
+    const c=e.target.closest&&e.target.closest('.card');
+    if(c && (e.key==='Enter'||e.key===' ')){e.preventDefault(); if(selected===c.dataset.id) clearSel(); else {clearSel(); selected=c.dataset.id; c.classList.add('sel'); toast('넣을 칸을 눌러 주세요');}}
+    if(e.key==='Escape') clearSel();
+  });
+
+  $('#reset').addEventListener('click',()=>{
+    if(!confirm('넣은 카드가 모두 보관함으로 돌아갑니다. 처음부터 다시 할까요?')) return;
+    const sid=state.sid; state=fresh(); state.sid=sid; lastStage=null; save(); render();
+  });
+
+  function fmtTime(ms){
+    if(!ms||ms<0) return '-';
+    const t=Math.round(ms/1000), h=Math.floor(t/3600), m=Math.floor(t%3600/60), sec=t%60;
+    return (h?h+'시간 ':'')+(h||m?m+'분 ':'')+sec+'초';
+  }
+  function elapsed(){return state.startAt&&state.endAt? state.endAt-state.startAt : 0;}
+  const modal=$('#modal');
+  $('#shot').addEventListener('click',()=>{
+    $('#mMiss').textContent=state.miss; $('#mTime').textContent=fmtTime(elapsed());
+    $('#mSid').value=state.sid||''; $('#mErr').textContent='';
+    modal.hidden=false; setTimeout(()=>$('#mSid').focus(),30);
+  });
+  $('#mClose').addEventListener('click',()=>{modal.hidden=true;});
+  modal.addEventListener('click',e=>{if(e.target===modal) modal.hidden=true;});
+  $('#mSid').addEventListener('keydown',e=>{if(e.key==='Enter') $('#mSave').click();});
+  $('#mSave').addEventListener('click',async()=>{
+    const sid=$('#mSid').value.trim();
+    if(!sid){$('#mErr').textContent='학번을 입력해 주세요.'; $('#mSid').focus(); return;}
+    state.sid=sid; save();
+    if(typeof html2canvas!=='function'){$('#mErr').textContent='이미지 도구를 불러오지 못했어요. 인터넷 연결을 확인한 뒤 새로고침해 주세요.'; return;}
+    const btn=$('#mSave'); btn.disabled=true; btn.textContent='만드는 중…';
+    $('#cSid').textContent=sid; $('#cMiss').textContent=state.miss; $('#cTime').textContent=fmtTime(elapsed());
+    const d=new Date(state.endAt||Date.now());
+    $('#cDate').textContent=`${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()}.`;
+    modal.hidden=true; document.body.classList.add('capturing'); drawLinks();
+    try{
+      const bg=getComputedStyle(document.body).backgroundColor;
+      const canvas=await html2canvas($('#capture'),{backgroundColor:bg,scale:2,useCORS:true,logging:false});
+      const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));
+      const name=`열과에너지_마인드맵_${sid.replace(/[^0-9A-Za-z가-힣_-]/g,'')}.png`;
+      await saveFile(name,blob);
+    }catch(err){toast('이미지를 만들지 못했어요. 다시 눌러 주세요',true);}
+    finally{document.body.classList.remove('capturing'); drawLinks(); btn.disabled=false; btn.textContent='이미지로 저장';}
+  });
+  async function saveFile(name,blob){
+    let dl=null;
+    try{ if(window.claude&&typeof window.claude.use==='function') dl=await window.claude.use('downloads'); }catch(_){dl=null;}
+    if(dl){
+      try{await dl.save({filename:name,data:blob}); toast('이미지를 저장했어요');}
+      catch(e){ if(e&&e.code==='declined') toast('저장을 취소했어요'); else toast('이 화면에서는 저장할 수 없어요',true); }
+      return;
+    }
+    const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000); toast('이미지를 저장했어요');
+  }
+
+  function drawLinks(){
+    const svg=$('#links'), map=$('#map');
+    if(getComputedStyle(svg).display==='none') return;
+    const m=map.getBoundingClientRect(), c=$('#center').getBoundingClientRect();
+    const cx=c.left+c.width/2-m.left, cy=c.top+c.height/2-m.top;
+    svg.setAttribute('viewBox',`0 0 ${m.width} ${m.height}`);
+    let html='';
+    document.querySelectorAll('[data-pill]').forEach(p=>{
+      const r=p.getBoundingClientRect(); const u=p.closest('.unit').getBoundingClientRect();
+      const ux=u.left+u.width/2-m.left, uy=u.top+u.height/2-m.top;
+      if(Math.abs(uy-cy)<u.height/2){
+        const px= ux<cx ? u.right-m.left : u.left-m.left; const mx=(cx+px)/2;
+        html+=`<path d="M${cx} ${cy} C ${mx} ${cy}, ${mx} ${cy}, ${px} ${cy}"/>`;
+      }else{
+        const px=r.left+r.width/2-m.left; const py= uy<cy ? u.bottom-m.top : u.top-m.top; const my=(cy+py)/2;
+        html+=`<path d="M${cx} ${cy} C ${cx} ${my}, ${px} ${my}, ${px} ${py}"/>`;
+      }
+    });
+    svg.innerHTML=html;
+  }
+  new ResizeObserver(drawLinks).observe($('#map'));
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(drawLinks);
+
+  load(); render();
+})();
+</script>
+</body>
+</html>
