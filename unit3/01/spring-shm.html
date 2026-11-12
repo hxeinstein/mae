@@ -1,36 +1,58 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>용수철 진자의 단진동</title>
 <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
-<style>html,body{margin:0;height:100%;background:#fff;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}</style></head>
+<style>html,body{margin:0;height:100%;background:#fff;overflow:hidden;touch-action:none}canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}</style></head>
 <body><canvas id="cv"></canvas>
 <script>
 const VW=800,VH=600,cv=document.getElementById('cv'),c=cv.getContext('2d');cv.width=VW*2;cv.height=VH*2;c.scale(2,2);
-const F="'Do Hyeon','Malgun Gothic',sans-serif",BL='#2f6fd6',RD='#e5484d',GR='#2fb98a',NV='#35415A',GY='#9db0ce';
-const T=2.4,w=2*Math.PI/T,A=90;let t=0,run=true,last=null;const hist=[];
-cv.addEventListener('click',()=>{run=!run});
-function arrow(x1,y1,x2,y2,col,lw){c.strokeStyle=c.fillStyle=col;c.lineWidth=lw;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();const a=Math.atan2(y2-y1,x2-x1),h=14;if(Math.hypot(x2-x1,y2-y1)<4)return;c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-h*Math.cos(a-0.45),y2-h*Math.sin(a-0.45));c.lineTo(x2-h*Math.cos(a+0.45),y2-h*Math.sin(a+0.45));c.closePath();c.fill();}
+const F="'Do Hyeon','Malgun Gothic',sans-serif",BL='#2f6fd6',RD='#e5484d',NV='#35415A',GY='#9db0ce';
+const T=2.4,w=2*Math.PI/T,MAXA=140,PXCM=10;        // 10 px = 1 cm
+const cx=170,TOPY=80,eq=300,GX=370,GW=400,SPAN=2*T;
+let A=90,t=0,run=true,last=null,dragging=false,dragX=0,moved=false,hist=[],marks=[],tick=0;
+let clearBtn={x:24,y:548,w:128,h:36};
+function pos(e){const r=cv.getBoundingClientRect(),s=Math.min(r.width/VW,r.height/VH),ox=(r.width-VW*s)/2,oy=(r.height-VH*s)/2;return{x:(e.clientX-r.left-ox)/s,y:(e.clientY-r.top-oy)/s}}
+function curX(){return dragging?dragX:A*Math.cos(w*t)}
+cv.addEventListener('pointerdown',e=>{const p=pos(e);moved=false;
+ if(p.x>=clearBtn.x&&p.x<=clearBtn.x+clearBtn.w&&p.y>=clearBtn.y&&p.y<=clearBtn.y+clearBtn.h){marks=[];return}
+ const y=eq+curX();if(Math.abs(p.x-cx)<60&&Math.abs(p.y-y)<55){dragging=true;dragX=curX();cv.setPointerCapture(e.pointerId);return}
+ // 그 밖을 누르면 멈춤/재생, 멈출 때 그 순간을 지점으로 기록
+ run=!run;if(!run&&A>2){const x=curX();marks.push({tt:t%SPAN,x,n:marks.length+1});if(marks.length>8)marks.shift();}
+});
+cv.addEventListener('pointermove',e=>{if(!dragging)return;moved=true;const p=pos(e);dragX=Math.max(-MAXA,Math.min(MAXA,p.y-eq));});
+cv.addEventListener('pointerup',e=>{if(!dragging)return;dragging=false;
+ // 놓은 자리를 진폭으로 새로 출발 (놓는 순간 속도 0)
+ A=Math.abs(dragX);t=dragX>=0?0:T/2;hist=[];marks=[];run=true;tick=0;});
+function arrow(x1,y1,x2,y2,col,lw){c.strokeStyle=c.fillStyle=col;c.lineWidth=lw;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();if(Math.hypot(x2-x1,y2-y1)<6)return;const a=Math.atan2(y2-y1,x2-x1),h=14;c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-h*Math.cos(a-0.45),y2-h*Math.sin(a-0.45));c.lineTo(x2-h*Math.cos(a+0.45),y2-h*Math.sin(a+0.45));c.closePath();c.fill();}
 function spring(x,y1,y2){const n=14,amp=18;c.strokeStyle=NV;c.lineWidth=3;c.beginPath();c.moveTo(x,y1);c.lineTo(x,y1+12);const L=y2-y1-24;for(let i=0;i<=n;i++){c.lineTo(x+(i%2?amp:-amp)*(i==0||i==n?0:1),y1+12+L*i/n);}c.lineTo(x,y2);c.stroke();}
-function graph(gx,gy,gw,gh,key,col,label,unit){c.strokeStyle='#cfd8e6';c.lineWidth=1.5;c.beginPath();c.moveTo(gx,gy+gh/2);c.lineTo(gx+gw,gy+gh/2);c.moveTo(gx,gy);c.lineTo(gx,gy+gh);c.stroke();
-c.fillStyle=col;c.font='24px '+F;c.textAlign='left';c.fillText(label,gx,gy-10);c.fillStyle='#8c8c96';c.font='18px '+F;c.fillText('시간',gx+gw-36,gy+gh+20);c.fillText('0',gx-18,gy+gh/2+6);
-c.strokeStyle=col;c.lineWidth=3;c.beginPath();const span=2*T;hist.forEach((p,i)=>{const X=gx+gw*(1-(t-p.t)/span),Y=gy+gh/2-p[key]*(gh/2-8);if(X<gx)return;i&&X>gx?c.lineTo(X,Y):c.moveTo(X,Y)});c.stroke();
-const cur=hist[hist.length-1];if(cur){c.fillStyle=col;c.beginPath();c.arc(gx+gw,gy+gh/2-cur[key]*(gh/2-8),6,0,7);c.fill();}}
+function gy(v,gy0,gh){return gy0+gh/2-v/MAXA*(gh/2-8)}
+function graph(gy0,gh,sign,col,label){c.strokeStyle='#cfd8e6';c.lineWidth=1.5;c.beginPath();c.moveTo(GX,gy0+gh/2);c.lineTo(GX+GW,gy0+gh/2);c.moveTo(GX,gy0);c.lineTo(GX,gy0+gh);c.stroke();
+ c.fillStyle=col;c.font='24px '+F;c.textAlign='left';c.fillText(label,GX,gy0-10);c.fillStyle='#8c8c96';c.font='18px '+F;c.fillText('시간',GX+GW-36,gy0+gh+20);c.fillText('0',GX-18,gy0+gh/2+6);
+ c.strokeStyle=col;c.lineWidth=3;c.beginPath();let f=true;hist.forEach(p=>{const X=GX+GW*p.tt/SPAN,Y=gy(sign*p.x,gy0,gh);f?c.moveTo(X,Y):c.lineTo(X,Y);f=false});c.stroke();
+ marks.forEach(m=>{const X=GX+GW*m.tt/SPAN,Y=gy(sign*m.x,gy0,gh);c.strokeStyle='#fff';c.lineWidth=3;c.fillStyle=col;c.beginPath();c.arc(X,Y,9,0,7);c.fill();c.stroke();c.fillStyle=NV;c.font='18px '+F;c.textAlign='center';c.fillText(m.n,X,Y-14);});
+ if(hist.length&&!dragging){const p=hist[hist.length-1];c.fillStyle=col;c.beginPath();c.arc(GX+GW*p.tt/SPAN,gy(sign*p.x,gy0,gh),5,0,7);c.fill();}}
+function dirTxt(v,unit){if(Math.abs(v)<0.05)return '0';return (v>0?'(+) ':'(−) ')+Math.abs(v).toFixed(unit==='cm'?1:2)+' '+unit}
 function draw(){c.fillStyle='#fff';c.fillRect(0,0,VW,VH);
-c.fillStyle=NV;c.font='34px '+F;c.textAlign='left';c.fillText('용수철 진자의 단진동',24,46);
-const x=A*Math.sin(w*t),a=-w*w*x;// 아래쪽을 (+)로 그림
-const cx=170,top=80,eq=330,y=eq+x;
-c.fillStyle=GY;c.fillRect(cx-70,top-12,140,12);
-spring(cx,top,y-34);
-c.setLineDash([8,6]);c.strokeStyle='#8c8c96';c.lineWidth=2;c.beginPath();c.moveTo(cx-120,eq);c.lineTo(cx+150,eq);c.stroke();c.setLineDash([]);
-c.fillStyle='#8c8c96';c.font='20px '+F;c.textAlign='left';c.fillText('평형점 O',cx+80,eq-8);
-c.fillStyle=NV;c.beginPath();c.roundRect(cx-34,y-34,68,68,10);c.fill();c.fillStyle='#fff';c.font='24px '+F;c.textAlign='center';c.fillText('추',cx,y+8);
-// 변위 화살표
-if(Math.abs(x)>3)arrow(cx-90,eq,cx-90,y,BL,5);
-// 복원력(가속도) 화살표
-const s=a/(w*w*A)*90;if(Math.abs(s)>3)arrow(cx+90,y,cx+90,y+s,RD,6);
-c.textAlign='left';c.font='22px '+F;c.fillStyle=BL;c.fillText('변위 x',24,560);c.fillStyle=RD;c.fillText('복원력 F·가속도 a',110,560);
-c.fillStyle='#8c8c96';c.font='18px '+F;c.fillText('(아래 방향을 + 로 그림)',24,588);
-graph(370,120,400,170,'x',BL,'변위 x');graph(370,370,400,170,'a',RD,'가속도 a');
-c.fillStyle='#8c8c96';c.font='18px '+F;c.textAlign='right';c.fillText(run?'클릭하면 멈춤':'클릭하면 재생',VW-14,VH-12);}
-function loop(ts){if(last===null)last=ts;let dt=Math.min(0.05,Math.max(0,(ts-last)/1000));last=ts;if(run){t+=dt;const x=Math.sin(w*t);hist.push({t,x,a:-x});while(hist.length&&t-hist[0].t>2*T+0.2)hist.shift();}draw();requestAnimationFrame(loop);}
+ c.fillStyle=NV;c.font='34px '+F;c.textAlign='left';c.fillText('용수철 진자의 단진동',24,46);
+ const x=curX(),y=eq+x,acc=-w*w*x;
+ c.fillStyle=GY;c.fillRect(cx-70,TOPY-12,140,12);spring(cx,TOPY,y-34);
+ c.setLineDash([8,6]);c.strokeStyle='#8c8c96';c.lineWidth=2;c.beginPath();c.moveTo(cx-120,eq);c.lineTo(cx+150,eq);c.stroke();c.setLineDash([]);
+ c.fillStyle='#8c8c96';c.font='20px '+F;c.textAlign='left';c.fillText('평형점 O',cx+80,eq-8);
+ c.fillStyle=dragging?'#4a5a7a':NV;c.beginPath();c.roundRect(cx-34,y-34,68,68,10);c.fill();c.fillStyle='#fff';c.font='24px '+F;c.textAlign='center';c.fillText('추',cx,y+8);
+ if(Math.abs(x)>3)arrow(cx-90,eq,cx-90,y,BL,5);
+ const s=-x;if(Math.abs(s)>3&&!dragging)arrow(cx+90,y,cx+90,y+s,RD,6);
+ // 현재 값
+ c.textAlign='left';c.font='20px '+F;c.fillStyle=BL;c.fillText('변위 x = '+dirTxt(-x/PXCM,'cm'),24,478);
+ c.fillStyle=RD;c.fillText('가속도 a = '+(dragging?'—':dirTxt(-acc/PXCM/100,'m/s²')),24,506);
+ c.fillStyle='#8c8c96';c.font='16px '+F;c.fillText('위 방향을 (+)로 정함',24,530);
+ // 지우기 버튼
+ c.fillStyle='#eef3fb';c.beginPath();c.roundRect(clearBtn.x,clearBtn.y,clearBtn.w,clearBtn.h,10);c.fill();c.fillStyle=NV;c.font='18px '+F;c.textAlign='center';c.fillText('지점 지우기',clearBtn.x+clearBtn.w/2,clearBtn.y+24);
+ graph(110,150,-1,BL,'변위 x');graph(340,150,1,RD,'가속도 a');
+ // 기록한 지점 표
+ if(marks.length){c.textAlign='left';c.font='16px '+F;c.fillStyle=NV;let s2='';marks.slice(-3).forEach((m,i)=>{c.fillText(m.n+'  x '+dirTxt(-m.x/PXCM,'cm')+'   a '+dirTxt(w*w*m.x/PXCM/100,'m/s²'),GX,524+i*20)});}
+ c.fillStyle='#8c8c96';c.font='17px '+F;c.textAlign='right';
+ c.fillText(dragging?'놓으면 진동을 시작해요':(run?'추를 끌어 당겼다 놓기 · 빈 곳 클릭: 멈추고 지점 기록':'멈춤 — 빈 곳을 클릭하면 다시 재생'),VW-14,VH-10);}
+function loop(ts){if(last===null)last=ts;let dt=Math.min(0.05,Math.max(0,(ts-last)/1000));last=ts;
+ if(run&&!dragging&&A>0){t+=dt;const tt=t%SPAN;if(hist.length&&tt<hist[hist.length-1].tt)hist=[];hist.push({tt,x:A*Math.cos(w*t)});}
+ draw();requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 </script></body></html>
