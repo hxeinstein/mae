@@ -16,12 +16,12 @@ cv.addEventListener('pointerdown',e=>{const p=pos(e);moved=false;
  if(p.x>=clearBtn.x&&p.x<=clearBtn.x+clearBtn.w&&p.y>=clearBtn.y&&p.y<=clearBtn.y+clearBtn.h){marks=[];return}
  const y=eq+curX();if(Math.abs(p.x-cx)<60&&Math.abs(p.y-y)<55){dragging=true;dragX=curX();cv.setPointerCapture(e.pointerId);return}
  // 그 밖을 누르면 멈춤/재생, 멈출 때 그 순간을 지점으로 기록
- run=!run;if(!run&&A>2){const x=curX();marks.push({tt:t%SPAN,x,n:marks.length+1});if(marks.length>8)marks.shift();}
+ run=!run;if(!run&&Math.abs(A)>2){const x=curX();marks.push({tt:t%SPAN,x,n:marks.length+1});if(marks.length>8)marks.shift();}
 });
 cv.addEventListener('pointermove',e=>{if(!dragging)return;moved=true;const p=pos(e);dragX=Math.max(-MAXA,Math.min(MAXA,p.y-eq));});
 cv.addEventListener('pointerup',e=>{if(!dragging)return;dragging=false;
  // 놓은 자리를 진폭으로 새로 출발 (놓는 순간 속도 0)
- A=Math.abs(dragX);t=dragX>=0?0:T/2;hist=[];marks=[];run=true;tick=0;});
+ A=dragX;t=0;hist=[];marks=[];run=true;tick=0;});
 function arrow(x1,y1,x2,y2,col,lw){c.strokeStyle=c.fillStyle=col;c.lineWidth=lw;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();if(Math.hypot(x2-x1,y2-y1)<6)return;const a=Math.atan2(y2-y1,x2-x1),h=14;c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-h*Math.cos(a-0.45),y2-h*Math.sin(a-0.45));c.lineTo(x2-h*Math.cos(a+0.45),y2-h*Math.sin(a+0.45));c.closePath();c.fill();}
 function spring(x,y1,y2){const n=14,amp=18;c.strokeStyle=NV;c.lineWidth=3;c.beginPath();c.moveTo(x,y1);c.lineTo(x,y1+12);const L=y2-y1-24;for(let i=0;i<=n;i++){c.lineTo(x+(i%2?amp:-amp)*(i==0||i==n?0:1),y1+12+L*i/n);}c.lineTo(x,y2);c.stroke();}
 function gy(v,gy0,gh){return gy0+gh/2-v/MAXA*(gh/2-8)}
@@ -52,7 +52,7 @@ function draw(){c.fillStyle='#fff';c.fillRect(0,0,VW,VH);
  c.fillStyle='#8c8c96';c.font='17px '+F;c.textAlign='right';
  c.fillText(dragging?'놓으면 진동을 시작해요':(run?'추를 끌어 당겼다 놓기 · 빈 곳 클릭: 멈추고 지점 기록':'멈춤 — 빈 곳을 클릭하면 다시 재생'),VW-14,VH-10);}
 function loop(ts){if(last===null)last=ts;let dt=Math.min(0.05,Math.max(0,(ts-last)/1000));last=ts;
- if(run&&!dragging&&A>0){t+=dt;const tt=t%SPAN;if(hist.length&&tt<hist[hist.length-1].tt)hist=[];hist.push({tt,x:A*Math.cos(w*t)});}
+ if(run&&!dragging&&Math.abs(A)>0){t+=dt;const tt=t%SPAN;if(hist.length&&tt<hist[hist.length-1].tt)hist=[];hist.push({tt,x:A*Math.cos(w*t)});}
  draw();requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 </script></body></html>
