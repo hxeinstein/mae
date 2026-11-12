@@ -1,0 +1,57 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ⅲ. 탄성파와 소리</title>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F3F7FF;--coral:#2f6fd6;--navy:#35415A;--line:#D6E2F5}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--cream);color:var(--navy);font-family:'Do Hyeon','Malgun Gothic',sans-serif}
+body{display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px;padding:10px 16px 6px;flex-wrap:wrap}
+h1{margin:0;font-size:clamp(20px,2.6vw,30px);font-weight:400}
+.sub{font-size:15px;color:#8C8C96}
+.tools{margin-left:auto;display:flex;gap:8px}
+.tools button,.tools a{border:2px solid var(--navy);background:#fff;color:var(--navy);border-radius:999px;padding:6px 14px;font:inherit;font-size:16px;cursor:pointer;text-decoration:none}
+nav{display:flex;gap:8px;padding:4px 16px;flex-wrap:wrap}
+nav button{border:2px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;font:inherit;cursor:pointer;color:var(--navy)}
+#units button{font-size:clamp(16px,1.8vw,21px)}
+#units button.on{border-color:var(--coral);background:var(--coral);color:#fff}
+#apps button{font-size:clamp(15px,1.6vw,19px)}
+#apps button.on{border-color:var(--navy);background:var(--navy);color:#fff}
+main{flex:1;padding:0 12px 12px;display:flex;min-height:0}
+iframe{flex:1;width:100%;border:3px solid var(--line);border-radius:16px;background:#fff}
+.empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:24px;color:#8C8C96}
+</style></head><body>
+<header><h1>Ⅲ. 탄성파와 소리</h1><span class="sub">역학과 에너지</span>
+<div class="tools"><a id="newwin" target="_blank" rel="noopener">새 창</a><button id="full">전체 화면</button></div></header>
+<nav id="units"></nav><nav id="apps"></nav>
+<main id="stage"></main>
+<script>
+/* ===== 단원·웹앱 목록 =====
+   새 단원을 추가할 때는 아래 UNITS 배열 끝에 한 덩어리를 추가한다.
+   id: 주소에 쓰이는 짧은 이름(#01-1 처럼 바로 열기 가능), file: 이 폴더 기준 경로 */
+const UNITS = [
+ {
+  "id": "01",
+  "name": "01. 용수철 진자와 단진동",
+  "apps": [
+   {"title": "용수철 진자의 단진동", "file": "01/spring-shm.html"},
+   {"title": "단진동과 원운동", "file": "01/circle-projection.html"},
+   {"title": "용수철 진자의 주기", "file": "01/spring-period.html"}
+  ]
+ }
+];
+/* ========================= */
+const $u=document.getElementById('units'),$a=document.getElementById('apps'),$s=document.getElementById('stage'),$n=document.getElementById('newwin');
+let cu=0,ca=0;
+function parseHash(){const h=decodeURIComponent(location.hash.slice(1));if(!h)return;const [u,a]=h.split('-');const i=UNITS.findIndex(x=>x.id===u);if(i>=0){cu=i;ca=Math.max(0,Math.min((+a||1)-1,UNITS[i].apps.length-1));}}
+function render(){
+ $u.innerHTML='';UNITS.forEach((u,i)=>{const b=document.createElement('button');b.textContent=u.name;if(i===cu)b.className='on';b.onclick=()=>{cu=i;ca=0;go()};$u.appendChild(b)});
+ const U=UNITS[cu];$a.innerHTML='';U.apps.forEach((p,i)=>{const b=document.createElement('button');b.textContent=p.title;if(i===ca)b.className='on';b.onclick=()=>{ca=i;go()};$a.appendChild(b)});
+ const p=U.apps[ca];$s.innerHTML='';if(!p){$s.innerHTML='<div class="empty">웹앱 준비 중</div>';$n.removeAttribute('href');return}
+ const f=document.createElement('iframe');f.src=p.file;f.title=p.title;f.allow='fullscreen';$s.appendChild(f);$n.href=p.file;}
+function go(){history.replaceState(null,'','#'+UNITS[cu].id+'-'+(ca+1));render()}
+document.getElementById('full').onclick=()=>{const f=$s.querySelector('iframe');(f||document.documentElement).requestFullscreen&&(f||document.documentElement).requestFullscreen()};
+window.addEventListener('hashchange',()=>{parseHash();render()});
+parseHash();render();
+</script></body></html>
