@@ -1,0 +1,37 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>용수철 진자의 주기</title>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#fff;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}</style></head>
+<body><canvas id="cv"></canvas>
+<script>
+const VW=800,VH=600,cv=document.getElementById('cv'),c=cv.getContext('2d');cv.width=VW*2;cv.height=VH*2;c.scale(2,2);
+const F="'Do Hyeon','Malgun Gothic',sans-serif",BL='#2f6fd6',RD='#e5484d',NV='#35415A',GY='#9db0ce';
+const T0=1.6;let m=1,k=1,A=1,t=0,run=true,last=null,phB=0;
+const steps=[0.25,0.5,1,2,4];
+function T(){return T0*Math.sqrt(m/k)}
+const btns=[];function addB(x,y,w,h,label,fn){btns.push({x,y,w,h,label,fn})}
+const row=[['질량 m','m'],['용수철 상수 k','k'],['진폭 A','A']];
+row.forEach((r,i)=>{const y=440+i*48;addB(560,y,44,38,'−',()=>chg(r[1],-1));addB(700,y,44,38,'+',()=>chg(r[1],1));});
+function chg(key,d){if(key==='A'){A=Math.min(1.4,Math.max(0.4,+(A+d*0.3).toFixed(1)));return;}const cur=key==='m'?m:k;let i=steps.indexOf(cur)+d;i=Math.max(0,Math.min(steps.length-1,i));const before=t/T()+phB;if(key==='m')m=steps[i];else k=steps[i];phB=before-t/T();}
+cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect(),s=Math.min(r.width/VW,r.height/VH),ox=(r.width-VW*s)/2,oy=(r.height-VH*s)/2,x=(e.clientX-r.left-ox)/s,y=(e.clientY-r.top-oy)/s;
+for(const b of btns){if(b.w&&x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h){b.fn();return;}}run=!run;});
+function spring(x,y1,y2,kk){const n=12+Math.round(Math.log2(kk))*2,amp=16;c.strokeStyle=NV;c.lineWidth=1.5+kk*0.7;c.beginPath();c.moveTo(x,y1);c.lineTo(x,y1+10);const L=y2-y1-20;for(let i=0;i<=n;i++){c.lineTo(x+(i%2?amp:-amp)*(i==0||i==n?0:1),y1+10+L*i/n);}c.lineTo(x,y2);c.stroke();}
+function bob(x,y,mm,col){const s=26+Math.sqrt(mm)*16;c.fillStyle=col;c.beginPath();c.roundRect(x-s/2,y,s,s,8);c.fill();c.fillStyle='#fff';c.font='18px '+F;c.textAlign='center';c.fillText(mm+'m',x,y+s/2+6);return s;}
+function pend(x,label,mm,kk,AA,phase,col){const TT=T0*Math.sqrt(mm/kk),eq=230,y=eq+70*AA*Math.cos(2*Math.PI*(t/TT+phase));
+c.fillStyle=GY;c.fillRect(x-60,60,120,10);spring(x,70,y,kk);bob(x,y,mm,col);
+c.setLineDash([6,5]);c.strokeStyle='#bbb';c.lineWidth=1.5;c.beginPath();c.moveTo(x-80,eq);c.lineTo(x+80,eq);c.stroke();c.setLineDash([]);
+c.fillStyle=col;c.font='26px '+F;c.textAlign='center';c.fillText(label,x,400);c.font='22px '+F;c.fillStyle=NV;c.fillText('주기 T = '+(TT/T0).toFixed(2)+' T₀',x,428);}
+function draw(){c.fillStyle='#fff';c.fillRect(0,0,VW,VH);c.fillStyle=NV;c.font='32px '+F;c.textAlign='left';c.fillText('용수철 진자의 주기  T = 2π√(m/k)',24,44);
+pend(170,'기준 (m, k)',1,1,1,0,'#6c7a93');pend(400,'바꿔 보기',m,k,A,phB,BL);
+// 패널
+c.fillStyle='#f3f6fb';c.beginPath();c.roundRect(540,90,240,330,16);c.fill();c.fillStyle=NV;c.font='22px '+F;c.textAlign='left';
+c.fillText('바꿔 보기 값',560,124);c.font='20px '+F;c.fillText('질량  '+m+' m',560,170);c.fillText('용수철 상수  '+k+' k',560,206);c.fillText('진폭  '+A.toFixed(1)+' A',560,242);
+c.fillStyle=BL;c.font='22px '+F;c.fillText('T = '+Math.sqrt(m/k).toFixed(2)+' T₀',560,292);
+c.fillStyle='#8c8c96';c.font='17px '+F;c.fillText('질량이 클수록 주기가 길고,',560,332);c.fillText('용수철 상수가 클수록 짧다.',560,356);c.fillText('진폭은 주기와 관계없다.',560,380);
+row.forEach((r,i)=>{const y=440+i*48;c.fillStyle=NV;c.font='20px '+F;c.textAlign='left';c.fillText(r[0],400,y+26);});
+btns.forEach(b=>{if(!b.w)return;c.fillStyle=BL;c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();c.fillStyle='#fff';c.font='28px '+F;c.textAlign='center';c.fillText(b.label,b.x+b.w/2,b.y+29);});
+row.forEach((r,i)=>{const y=440+i*48,v=r[1]==='m'?m+' m':r[1]==='k'?k+' k':A.toFixed(1)+' A';c.fillStyle=NV;c.font='22px '+F;c.textAlign='center';c.fillText(v,652,y+27);});
+c.fillStyle='#8c8c96';c.font='16px '+F;c.textAlign='left';c.fillText('버튼 밖을 클릭하면 '+(run?'멈춤':'재생'),24,VH-14);}
+function loop(ts){if(last===null)last=ts;let dt=Math.min(0.05,Math.max(0,(ts-last)/1000));last=ts;if(run)t+=dt;draw();requestAnimationFrame(loop);}
+requestAnimationFrame(loop);
+</script></body></html>

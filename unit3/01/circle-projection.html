@@ -1,0 +1,48 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>단진동과 원운동</title>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#fff;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer}</style></head>
+<body><canvas id="cv"></canvas>
+<script>
+const VW=960,VH=540,cv=document.getElementById('cv'),c=cv.getContext('2d');cv.width=VW*2;cv.height=VH*2;c.scale(2,2);
+const F="'Do Hyeon','Malgun Gothic',sans-serif",OR='#e8572a',BL='#2f6fd6',GR='#2fb98a',NV='#35415A';
+const T=4,w=2*Math.PI/T,R=120;let t=0,run=true,last=null,mode=0;const hist=[];
+cv.addEventListener('click',()=>{run=!run});
+function arrow(x1,y1,x2,y2,col,lw){c.strokeStyle=c.fillStyle=col;c.lineWidth=lw;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();const L=Math.hypot(x2-x1,y2-y1);if(L<5)return;const a=Math.atan2(y2-y1,x2-x1),h=12;c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-h*Math.cos(a-0.45),y2-h*Math.sin(a-0.45));c.lineTo(x2-h*Math.cos(a+0.45),y2-h*Math.sin(a+0.45));c.closePath();c.fill();}
+function graph(gx,gy,gw,gh,key,col,label,amp){c.strokeStyle='#cfd8e6';c.lineWidth=1.5;c.beginPath();c.moveTo(gx,gy+gh/2);c.lineTo(gx+gw,gy+gh/2);c.moveTo(gx,gy);c.lineTo(gx,gy+gh);c.stroke();
+c.fillStyle=col;c.font='22px '+F;c.textAlign='left';c.fillText(label,gx,gy-8);c.fillStyle='#8c8c96';c.font='16px '+F;c.fillText('t',gx+gw-12,gy+gh/2+18);
+const span=2*T,p0=Math.max(0,t-span);c.strokeStyle=col;c.lineWidth=3;c.beginPath();let f=true;hist.forEach(p=>{if(p.t<p0)return;const X=gx+gw*(p.t-p0)/span,Y=gy+gh/2-p[key]*(gh/2-6);f?c.moveTo(X,Y):c.lineTo(X,Y);f=false});c.stroke();
+const cur=hist[hist.length-1];if(cur){c.fillStyle=col;c.beginPath();c.arc(gx+gw*(cur.t-p0)/span,gy+gh/2-cur[key]*(gh/2-6),6,0,7);c.fill();}}
+function draw(){c.fillStyle='#fff';c.fillRect(0,0,VW,VH);
+c.fillStyle=NV;c.font='32px '+F;c.textAlign='left';c.fillText('단진동과 원운동',24,44);
+const th=w*t,ox=240,oy=290,px=ox+R*Math.cos(th),py=oy-R*Math.sin(th),sx=ox+R+90,qy=py;
+// 평행 광선
+c.strokeStyle='#f3b13c';c.lineWidth=3;for(let i=-2;i<=2;i++){arrow(40,oy+i*55,90,oy+i*55,'#f3b13c',3);}
+c.fillStyle='#b07a10';c.font='18px '+F;c.textAlign='center';c.fillText('평행 광선',65,oy+150);
+// 원
+c.fillStyle='#e8f1ff';c.strokeStyle='#7fb2ef';c.lineWidth=3;c.beginPath();c.arc(ox,oy,R,0,7);c.fill();c.stroke();
+c.strokeStyle='#8c8c96';c.lineWidth=1.5;c.setLineDash([6,5]);c.beginPath();c.moveTo(ox,oy);c.lineTo(sx,oy);c.moveTo(px,py);c.lineTo(sx,qy);c.stroke();c.setLineDash([]);
+c.strokeStyle=NV;c.lineWidth=2;c.beginPath();c.moveTo(ox,oy);c.lineTo(px,py);c.stroke();
+c.fillStyle=NV;c.beginPath();c.arc(ox,oy,4,0,7);c.fill();c.font='20px '+F;c.textAlign='right';c.fillText('O',ox-8,oy+20);
+// 스크린
+c.fillStyle='#fdeeb5';c.fillRect(sx-14,oy-R-30,28,2*R+60);
+c.fillStyle='#8c8c96';c.font='16px '+F;c.textAlign='center';c.fillText('그림자',sx,oy+R+52);
+// P, Q
+c.fillStyle='#c0569a';c.beginPath();c.arc(px,py,10,0,7);c.fill();c.fillStyle=NV;c.font='22px '+F;c.textAlign='left';c.fillText('P',px+12,py-10);
+c.fillStyle='#6c7a93';c.beginPath();c.arc(sx,qy,10,0,7);c.fill();c.fillStyle=NV;c.fillText('Q',sx+16,qy+8);
+// 벡터
+const vs=0.32*R*w,as=0.32*R*w*w*0.9;
+if(mode===0){arrow(sx-34,oy,sx-34,qy,OR,4);c.fillStyle=OR;c.font='18px '+F;c.textAlign='right';c.fillText('xQ',sx-40,(oy+qy)/2+6);}
+// v at P (tangent)
+const vx=-Math.sin(th),vy=-Math.cos(th);arrow(px,py,px+vx*vs*0.9,py+vy*vs*0.9,BL,3);
+arrow(sx+40,qy,sx+40,qy+vy*vs*0.9,BL,4);
+// a at P (toward center)
+arrow(px,py,px-Math.cos(th)*as*0.6,py+Math.sin(th)*as*0.6,GR,3);
+arrow(sx+70,qy,sx+70,qy+Math.sin(th)*as*0.6,GR,4);
+c.font='17px '+F;c.textAlign='left';c.fillStyle=BL;c.fillText('vQ',sx+30,oy-R-40);c.fillStyle=GR;c.fillText('aQ',sx+62,oy-R-40);c.fillStyle=OR;c.fillText('xQ',sx-46,oy-R-40);
+// 그래프
+const gx=560,gw=370;graph(gx,95,gw,115,'x',OR,'변위  xQ = A sinωt');graph(gx,250,gw,115,'v',BL,'속도  vQ = Aω cosωt');graph(gx,405,gw,115,'a',GR,'가속도  aQ = −ω²x');
+c.fillStyle='#8c8c96';c.font='16px '+F;c.textAlign='right';c.fillText(run?'클릭하면 멈춤':'클릭하면 재생',VW-10,VH-8);}
+function loop(ts){if(last===null)last=ts;let dt=Math.min(0.05,Math.max(0,(ts-last)/1000));last=ts;if(run){t+=dt;const s=Math.sin(w*t),k=Math.cos(w*t);hist.push({t,x:s,v:k,a:-s});while(hist.length&&t-hist[0].t>2*T+0.3)hist.shift();}draw();requestAnimationFrame(loop);}
+requestAnimationFrame(loop);
+</script></body></html>
