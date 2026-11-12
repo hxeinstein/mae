@@ -12,7 +12,7 @@ function T(){return T0*Math.sqrt(m/k)}
 const btns=[];function addB(x,y,w,h,label,fn){btns.push({x,y,w,h,label,fn})}
 const row=[['질량 m','m'],['용수철 상수 k','k'],['진폭 A','A']];
 row.forEach((r,i)=>{const y=440+i*48;addB(560,y,44,38,'−',()=>chg(r[1],-1));addB(700,y,44,38,'+',()=>chg(r[1],1));});
-function chg(key,d){if(key==='A'){A=Math.min(1.4,Math.max(0.4,+(A+d*0.3).toFixed(1)));return;}const cur=key==='m'?m:k;let i=steps.indexOf(cur)+d;i=Math.max(0,Math.min(steps.length-1,i));const before=t/T()+phB;if(key==='m')m=steps[i];else k=steps[i];phB=before-t/T();}
+function chg(key,d){if(key==='A'){A=Math.min(1.4,Math.max(0.4,+(A+d*0.3).toFixed(1)));t=0;phB=0;return;}const cur=key==='m'?m:k;let i=steps.indexOf(cur)+d;i=Math.max(0,Math.min(steps.length-1,i));if(key==='m')m=steps[i];else k=steps[i];t=0;phB=0;}
 cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect(),s=Math.min(r.width/VW,r.height/VH),ox=(r.width-VW*s)/2,oy=(r.height-VH*s)/2,x=(e.clientX-r.left-ox)/s,y=(e.clientY-r.top-oy)/s;
 for(const b of btns){if(b.w&&x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h){b.fn();return;}}run=!run;});
 function spring(x,y1,y2,kk){const n=12+Math.round(Math.log2(kk))*2,amp=16;c.strokeStyle=NV;c.lineWidth=1.5+kk*0.7;c.beginPath();c.moveTo(x,y1);c.lineTo(x,y1+10);const L=y2-y1-20;for(let i=0;i<=n;i++){c.lineTo(x+(i%2?amp:-amp)*(i==0||i==n?0:1),y1+10+L*i/n);}c.lineTo(x,y2);c.stroke();}
