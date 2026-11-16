@@ -9,8 +9,12 @@ const F="'Do Hyeon','Malgun Gothic',sans-serif",OR='#e8572a',BL='#2f6fd6',GR='#2
 const T=4,w=2*Math.PI/T,R=120;let t=0,run=true,last=null,mode=0;const hist=[];
 cv.addEventListener('click',()=>{run=!run});
 function arrow(x1,y1,x2,y2,col,lw){c.strokeStyle=c.fillStyle=col;c.lineWidth=lw;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();const L=Math.hypot(x2-x1,y2-y1);if(L<5)return;const a=Math.atan2(y2-y1,x2-x1),h=12;c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-h*Math.cos(a-0.45),y2-h*Math.sin(a-0.45));c.lineTo(x2-h*Math.cos(a+0.45),y2-h*Math.sin(a+0.45));c.closePath();c.fill();}
+function stxt(str,x,y){const m=c.font.match(/(\d+(?:\.\d+)?)px/),fs=m?+m[1]:20,base=c.font,sf=c.font.replace(m[0],(fs*0.62).toFixed(1)+'px');
+ const parts=str.split(/_(\S)/);let W=0;parts.forEach((p,i)=>{c.font=i%2?sf:base;W+=c.measureText(p).width;});
+ const al=c.textAlign;let X=al==='right'||al==='end'?x-W:al==='center'?x-W/2:x;c.textAlign='left';
+ parts.forEach((p,i)=>{c.font=i%2?sf:base;c.fillText(p,X,y+(i%2?fs*0.22:0));X+=c.measureText(p).width;});c.font=base;c.textAlign=al;}
 function graph(gx,gy,gw,gh,key,col,label,amp){c.strokeStyle='#cfd8e6';c.lineWidth=1.5;c.beginPath();c.moveTo(gx,gy+gh/2);c.lineTo(gx+gw,gy+gh/2);c.moveTo(gx,gy);c.lineTo(gx,gy+gh);c.stroke();
-c.fillStyle=col;c.font='22px '+F;c.textAlign='left';c.fillText(label,gx,gy-8);c.fillStyle='#8c8c96';c.font='16px '+F;c.fillText('t',gx+gw-12,gy+gh/2+18);
+c.fillStyle=col;c.font='22px '+F;c.textAlign='left';stxt(label,gx,gy-8);c.fillStyle='#8c8c96';c.font='16px '+F;c.fillText('t',gx+gw-12,gy+gh/2+18);
 const span=2*T,p0=Math.max(0,t-span);c.strokeStyle=col;c.lineWidth=3;c.beginPath();let f=true;hist.forEach(p=>{if(p.t<p0)return;const X=gx+gw*(p.t-p0)/span,Y=gy+gh/2-p[key]*(gh/2-6);f?c.moveTo(X,Y):c.lineTo(X,Y);f=false});c.stroke();
 const cur=hist[hist.length-1];if(cur){c.fillStyle=col;c.beginPath();c.arc(gx+gw*(cur.t-p0)/span,gy+gh/2-cur[key]*(gh/2-6),6,0,7);c.fill();}}
 function draw(){c.fillStyle='#fff';c.fillRect(0,0,VW,VH);
@@ -32,16 +36,16 @@ c.fillStyle='#c0569a';c.beginPath();c.arc(px,py,10,0,7);c.fill();c.fillStyle=NV;
 c.fillStyle='#6c7a93';c.beginPath();c.arc(sx,qy,10,0,7);c.fill();c.fillStyle=NV;c.fillText('Q',sx+16,qy+8);
 // 벡터
 const vs=0.32*R*w,as=0.32*R*w*w*0.9;
-if(mode===0){arrow(sx-34,oy,sx-34,qy,OR,4);c.fillStyle=OR;c.font='18px '+F;c.textAlign='right';c.fillText('xQ',sx-40,(oy+qy)/2+6);}
+if(mode===0){arrow(sx-34,oy,sx-34,qy,OR,4);c.fillStyle=OR;c.font='18px '+F;c.textAlign='right';stxt('x_Q',sx-40,(oy+qy)/2+6);}
 // v at P (tangent)
 const vx=-Math.sin(th),vy=-Math.cos(th);arrow(px,py,px+vx*vs*0.9,py+vy*vs*0.9,BL,3);
 arrow(sx+40,qy,sx+40,qy+vy*vs*0.9,BL,4);
 // a at P (toward center)
 arrow(px,py,px-Math.cos(th)*as*0.6,py+Math.sin(th)*as*0.6,GR,3);
 arrow(sx+70,qy,sx+70,qy+Math.sin(th)*as*0.6,GR,4);
-c.font='17px '+F;c.textAlign='left';c.fillStyle=BL;c.fillText('vQ',sx+30,oy-R-40);c.fillStyle=GR;c.fillText('aQ',sx+62,oy-R-40);c.fillStyle=OR;c.fillText('xQ',sx-46,oy-R-40);
+c.font='17px '+F;c.textAlign='left';c.fillStyle=BL;stxt('v_Q',sx+30,oy-R-40);c.fillStyle=GR;stxt('a_Q',sx+62,oy-R-40);c.fillStyle=OR;stxt('x_Q',sx-46,oy-R-40);
 // 그래프
-const gx=560,gw=370;graph(gx,95,gw,115,'x',OR,'변위  xQ = A sinωt');graph(gx,250,gw,115,'v',BL,'속도  vQ = Aω cosωt');graph(gx,405,gw,115,'a',GR,'가속도  aQ = −ω²x');
+const gx=560,gw=370;graph(gx,95,gw,115,'x',OR,'변위  x_Q = A sinωt');graph(gx,250,gw,115,'v',BL,'속도  v_Q = Aω cosωt');graph(gx,405,gw,115,'a',GR,'가속도  a_Q = −ω²x');
 c.fillStyle='#8c8c96';c.font='16px '+F;c.textAlign='right';c.fillText(run?'클릭하면 멈춤':'클릭하면 재생',VW-10,VH-8);}
 function loop(ts){if(last===null)last=ts;let dt=Math.min(0.05,Math.max(0,(ts-last)/1000));last=ts;if(run){t+=dt;const s=Math.sin(w*t),k=Math.cos(w*t);hist.push({t,x:s,v:k,a:-s});while(hist.length&&t-hist[0].t>2*T+0.3)hist.shift();}draw();requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
